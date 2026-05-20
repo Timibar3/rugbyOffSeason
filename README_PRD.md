@@ -2,12 +2,15 @@ Product Requirement Document (PRD)
 Proyecto: Plataforma de Gestión de Pretemporada de Rugby
 Fase: MVP (Minimum Viable Product)
 Enfoque: Web App (Mobile-Responsive priorizado para Jugadores/Entrenadores)
+
 1. Objetivos del Producto
+
 Permitir la planificación y el seguimiento del entrenamiento remoto de un plantel de rugby fuera de temporada.
 Centralizar la recolección de métricas físicas y de rendimiento a través de Tests asignados.
 Garantizar la privacidad de los datos de los jugadores frente a sus pares, promoviendo la competencia sana mediante promedios grupales y rankings exclusivos para el staff técnico.
 
 2. Matriz de Roles y Permisos
+
 Permiso / Acción
 Administrador
 Head Coach
@@ -81,6 +84,7 @@ X
 
 
 3. Lógica de Jerarquías de Jugadores (Estructura de Datos)
+
 El sistema debe contemplar la polifuncionalidad (un jugador puede pertenecer a más de una posición final). La estructura de asignación de entrenamientos y filtros de informes sigue este árbol jerárquico:
 Plantel Completo (Jugadores)
 Forwards
@@ -101,6 +105,12 @@ El sistema debe separar estrictamente la información base del ejercicio de su a
 * **Datos de Plantilla:** Título, Tipo, Clases, Video/Imagen y Descripción técnica del ejercicio. Son de solo lectura para el entrenador al momento de agendar.
 * **Datos de Instancia (Comentario del Entrenador):** Campo de texto libre y modificable único para cada asignación en la agenda. Permite al entrenador especificar las cargas del día (ej: "3 series de 4 con mínimo 10kg"). 
 * **Regla de Clonación y Edición:** Al usar la función "Clonar Ejercicio", la nueva instancia creada en el día de destino heredará el "Comentario del Entrenador" original. El entrenador podrá editar o borrar este comentario en el nuevo día sin que afecte al entrenamiento del día origen ni a la plantilla del catálogo.
+
+3.2. Desacoplamiento del Flujo de Creación y Asignación
+El ciclo de vida de un ejercicio o test debe permitir la creación independiente:
+1. **Creación en Catálogo (Stand-alone):** El Administrador, Head Coach o Entrenador pueden acceder a un formulario global de "Nuevo Ejercicio/Test". Al completarlo (Nombre, Tipo, Clases, Descripción, Video), este se guarda directamente en la biblioteca general del equipo sin requerir fecha, jerarquía de jugador ni comentario.
+2. **Asignación desde Catálogo:** El staff técnico planifica la agenda seleccionando ítems preexistentes en este catálogo. Al seleccionar uno, recién ahí se abre el flujo para elegir el día, las jerarquías de jugadores y agregar el comentario específico de la instancia.
+3. **Generación Dinámica de Métricas:** La sección de filtros de métricas en los "Informes Globales" no es estática. El sistema consultará activamente la tabla de Catálogo filtrada por tipo `Test` para renderizar las opciones disponibles en la interfaz. La creación de un test implica la creación automática de su correspondiente tablero analítico de control y ranking.
 
 4. Historias de Usuario Principales (User Stories)
 Flujo de Onboarding e Ingreso
@@ -136,7 +146,9 @@ Base de Datos: PostgreSQL relacional para manejar de forma segura las relaciones
 Storage: Se utiliza Supabase Storage para que el Administrador pueda subir las imágenes de las plantillas de entrenamiento.
 
 Modificaciones Específicas al PRD (Sección Técnica)
+
 6. Arquitectura Técnica (Next.js + Supabase)
+
 Flujo de Registro Segurizado: Cuando un jugador se registra mediante Supabase Auth, se crea un registro en la tabla usuarios con estado pendiente. Al ingresar el ID del equipo, se genera la solicitud que el Head Coach verá en su panel. Una vez aprobado, el Head Coach modifica el rol en la base de datos a jugador y le asigna sus posiciones.
 Estrategia de Transición a Mobile: La lógica de consultas a la base de datos que se use en Next.js se conectará directamente a las tablas de Supabase. Cuando se desarrolle la app mobile en React Native/Expo, esa app se conectará directamente a las mismas tablas y servicios de Supabase, reutilizando el 100% de la base de datos, las imágenes guardadas y el sistema de usuarios sin tener que migrar nada.
 Seguridad de Datos (RLS - Row Level Security): Se aplicarán políticas estrictas en Supabase para cumplir con el requerimiento de privacidad del Pilar 2:
@@ -178,3 +190,15 @@ C. Especificidad de Rugby (Contexto de Juego)
 7.3. Requerimientos de UX/UI para Clases
 * **Filtros Multi-Select (Vista Entrenador):** La biblioteca de ejercicios debe permitir filtrar cruzando el Tipo con múltiples Clases mediante componentes de tipo *Badges* o *Checkboxes* (ej: Buscar un `Test` que sea de `Resistencia` y `Full Body`).
 * **Formulario de Creación (Vista Administrador):** El panel de carga de nuevas plantillas debe incluir un selector múltiple amigable para tildar las clases correspondientes de forma ágil antes de guardar el ejercicio en el catálogo.
+
+7.4. Arquitectura de Catálogo: Base Global vs. Biblioteca Privada
+El catálogo general de ejercicios y tests se dividirá en dos niveles de visibilidad y autoría estrictamente separados mediante base de datos:
+
+1. **Ejercicios/Tests "Base" (Globales):**
+   * **Autoría:** Únicamente el rol `Administrador` del sistema puede crearlos, editarlos o eliminarlos.
+   * **Visibilidad:** Son universales. Aparecen por defecto en el catálogo de todos los `Head Coach` y `Entrenadores` de cualquier equipo apenas se registran.
+   * **Permisos de Staff:** El staff de los equipos puede verlos y asignarlos a la agenda, pero no puede modificarlos ni borrarlos del catálogo general.
+
+2. **Ejercicios/Tests de Equipo (Privados):**
+   * **Autoría:** Creados por el `Head Coach` o los `Entrenadores` desde su panel de equipo.
+   * **Visibilidad:** Son estrictamente privados. El sistema aplicará filtros (mediante el ID de Equipo) para que estos ejercicios solo estén disponibles en la biblioteca y agenda de ese club específico. Ningún usuario de otro equipo podrá visualizarlos.

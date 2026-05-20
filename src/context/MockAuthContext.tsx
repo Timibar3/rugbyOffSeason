@@ -65,7 +65,9 @@ interface MockAuthState {
   agregarItemAgenda: (item: Omit<AgendaItem, "id">) => void;
   eliminarItemAgenda: (id: string) => void;
   clonarItemAgenda: (id: string, nuevaFecha: string) => void;
+  editarComentarioAgenda: (id: string, comentario: string) => void;
   agregarEjercicioPersonalizado: (ej: EjercicioTemplate) => void;
+  eliminarEjercicioPersonalizado: (id: string) => void;
 }
 
 // ─── Contexto ─────────────────────────────────────────────────────────────────
@@ -89,6 +91,9 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const login = useCallback((id: string) => {
+    // Resetear la fecha al día actual en cada cambio de rol para que
+    // ambas vistas (jugador y entrenador) arranquen desde el mismo punto.
+    setFechaSeleccionada(FECHA_HOY);
     const jugador = JUGADORES.find((j) => j.id === id);
     if (jugador) {
       setUsuarioActivo({ ...jugador, tipo: "jugador" });
@@ -174,9 +179,23 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         ejercicioId: original.ejercicioId,
         fecha: nuevaFecha,
         targets: original.targets,
+        comentarioEntrenador: original.comentarioEntrenador,
       });
     },
     [agenda, agregarItemAgenda]
+  );
+
+  const editarComentarioAgenda = useCallback(
+    (id: string, comentario: string) => {
+      setAgenda((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, comentarioEntrenador: comentario || undefined }
+            : item
+        )
+      );
+    },
+    []
   );
 
   const agregarEjercicioPersonalizado = useCallback(
@@ -185,6 +204,12 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const eliminarEjercicioPersonalizado = useCallback((id: string) => {
+    setEjerciciosPersonalizados((prev) => prev.filter((e) => e.id !== id));
+    // Limpiar items de agenda que quedaron huérfanos
+    setAgenda((prev) => prev.filter((item) => item.ejercicioId !== id));
+  }, []);
 
   const value = useMemo<MockAuthState>(
     () => ({
@@ -205,7 +230,9 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       agregarItemAgenda,
       eliminarItemAgenda,
       clonarItemAgenda,
+      editarComentarioAgenda,
       agregarEjercicioPersonalizado,
+      eliminarEjercicioPersonalizado,
     }),
     [
       usuarioActivo,
@@ -224,7 +251,9 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       agregarItemAgenda,
       eliminarItemAgenda,
       clonarItemAgenda,
+      editarComentarioAgenda,
       agregarEjercicioPersonalizado,
+      eliminarEjercicioPersonalizado,
     ]
   );
 

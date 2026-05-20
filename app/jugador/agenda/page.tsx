@@ -1,20 +1,63 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Dumbbell, FlaskConical, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Dumbbell, FlaskConical, ChevronDown, ChevronRight, CheckCircle2, ChevronLeft } from "lucide-react";
 import { useMockAuth } from "@/context/MockAuthContext";
 import { getItemsParaJugador } from "@/lib/dedup";
-import { DIAS_SEMANA, FECHA_HOY, getGruposDeJugador } from "@/mocks/rugbyData";
+import { DIAS_SEMANA, FECHA_HOY, getGruposDeJugador, IMAGEN_FALLBACK } from "@/mocks/rugbyData";
 import type { EjercicioTemplate } from "@/mocks/rugbyData";
+
+// ─── Sub-componente: Miniatura de imágenes con carrusel compacto ─────────────
+
+function MiniCarrusel({ imagenes }: { imagenes: string[] }) {
+  const imgs = imagenes.length > 0 ? imagenes : [IMAGEN_FALLBACK];
+  const [idx, setIdx] = useState(0);
+
+  return (
+    <div className="relative flex-shrink-0 w-28 h-24 rounded-lg overflow-hidden bg-surface-container-high">
+      <img
+        src={imgs[idx]}
+        alt=""
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = IMAGEN_FALLBACK;
+        }}
+      />
+      {imgs.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i - 1 + imgs.length) % imgs.length); }}
+            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-all"
+            aria-label="Imagen anterior"
+          >
+            <ChevronLeft size={10} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i + 1) % imgs.length); }}
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-all"
+            aria-label="Imagen siguiente"
+          >
+            <ChevronRight size={10} />
+          </button>
+          <span className="absolute bottom-1 right-1 px-1 py-0.5 bg-black/60 text-white font-jetbrains text-[8px] rounded leading-none">
+            {idx + 1}/{imgs.length}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
 
 // ─── Sub-componente: Tarjeta de Entrenamiento ─────────────────────────────────
 
 function EntrenamientoCard({
   ejercicio,
   fecha,
+  comentarioEntrenador,
 }: {
   ejercicio: EjercicioTemplate;
   fecha: string;
+  comentarioEntrenador?: string;
 }) {
   const { isCompletado, toggleCompletado } = useMockAuth();
   const [expanded, setExpanded] = useState(false);
@@ -22,26 +65,41 @@ function EntrenamientoCard({
 
   return (
     <div className="bg-surface-container p-[24px] rounded-xl border border-outline-variant overflow-hidden">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <span className="font-jetbrains text-[10px] tracking-[0.15em] text-primary-container uppercase">
-            SESIÓN DE FUERZA
-          </span>
-          <h2 className="font-inter font-bold text-xl text-on-surface mt-1">
+      {/* Header + miniatura en fila */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Dumbbell className="text-primary-container flex-shrink-0" size={12} />
+            <span className="font-jetbrains text-[10px] tracking-[0.15em] text-primary-container uppercase">
+              SESIÓN DE ENTRENAMIENTO
+            </span>
+          </div>
+          <h2 className="font-inter font-bold text-xl text-on-surface">
             {ejercicio.nombre}
           </h2>
         </div>
-        <Dumbbell className="text-primary-container flex-shrink-0 mt-1" size={20} />
+        <MiniCarrusel imagenes={ejercicio.imagenes} />
       </div>
 
-      {/* Instrucciones expandibles */}
+      {/* Comentario del entrenador — destacado */}
+      {comentarioEntrenador && (
+        <div className="mb-4 p-4 bg-primary-container/8 border-l-2 border-primary-container rounded-r-lg">
+          <p className="font-jetbrains text-[9px] tracking-widest text-primary-container uppercase mb-1.5">
+            Indicaciones del entrenador
+          </p>
+          <p className="font-inter text-sm text-on-surface leading-relaxed font-medium">
+            {comentarioEntrenador}
+          </p>
+        </div>
+      )}
+
+      {/* Instrucciones del catálogo — expandibles */}
       <div className="mb-5">
         <button
           onClick={() => setExpanded((v) => !v)}
           className="flex items-center gap-2 font-jetbrains text-[10px] tracking-[0.12em] text-on-surface-variant hover:text-primary-container transition-colors mb-2"
         >
-          <span>INSTRUCCIONES DEL COACH</span>
+          <span>DESCRIPCIÓN DEL EJERCICIO</span>
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         </button>
         {expanded && (
@@ -71,9 +129,11 @@ function EntrenamientoCard({
 function TestCard({
   ejercicio,
   fecha,
+  comentarioEntrenador,
 }: {
   ejercicio: EjercicioTemplate;
   fecha: string;
+  comentarioEntrenador?: string;
 }) {
   const { guardarResultadoTest, getResultadoTest } = useMockAuth();
   const [inputValue, setInputValue] = useState("");
@@ -87,18 +147,33 @@ function TestCard({
 
   return (
     <div className="bg-surface-container p-[24px] rounded-xl border border-outline-variant">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <span className="font-jetbrains text-[10px] tracking-[0.15em] text-secondary uppercase">
-            EVALUACIÓN
-          </span>
-          <h2 className="font-inter font-bold text-xl text-on-surface mt-1">
+      {/* Header + miniatura en fila */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <FlaskConical className="text-secondary flex-shrink-0" size={12} />
+            <span className="font-jetbrains text-[10px] tracking-[0.15em] text-secondary uppercase">
+              EVALUACIÓN
+            </span>
+          </div>
+          <h2 className="font-inter font-bold text-xl text-on-surface">
             {ejercicio.nombre}
           </h2>
         </div>
-        <FlaskConical className="text-secondary flex-shrink-0 mt-1" size={20} />
+        <MiniCarrusel imagenes={ejercicio.imagenes} />
       </div>
+
+      {/* Comentario del entrenador — destacado */}
+      {comentarioEntrenador && (
+        <div className="mb-4 p-4 bg-secondary/8 border-l-2 border-secondary rounded-r-lg">
+          <p className="font-jetbrains text-[9px] tracking-widest text-secondary uppercase mb-1.5">
+            Indicaciones del entrenador
+          </p>
+          <p className="font-inter text-sm text-on-surface leading-relaxed font-medium">
+            {comentarioEntrenador}
+          </p>
+        </div>
+      )}
 
       <p className="text-on-surface-variant text-sm leading-relaxed border-l-2 border-outline-variant pl-4 py-1 mb-5">
         {ejercicio.descripcion}
@@ -156,12 +231,20 @@ export default function AgendaPage() {
     fechaSeleccionada,
     setFechaSeleccionada,
     agenda,
+    todosLosEjercicios,
   } = useMockAuth();
 
   const items = useMemo(() => {
     if (!usuarioActivo || usuarioActivo.tipo !== "jugador") return [];
-    return getItemsParaJugador(usuarioActivo.posiciones, fechaSeleccionada, agenda);
-  }, [usuarioActivo, fechaSeleccionada, agenda]);
+    // Pasar todosLosEjercicios para incluir los ejercicios personalizados
+    // creados por el entrenador, que no están en EJERCICIOS_TEMPLATE.
+    return getItemsParaJugador(
+      usuarioActivo.posiciones,
+      fechaSeleccionada,
+      agenda,
+      todosLosEjercicios
+    );
+  }, [usuarioActivo, fechaSeleccionada, agenda, todosLosEjercicios]);
 
   const entrenamientos = items.filter((i) => i.ejercicio.tipo === "ejercicio");
   const tests = items.filter((i) => i.ejercicio.tipo === "test");
@@ -249,7 +332,11 @@ export default function AgendaPage() {
       {/* ── Entrenamientos ────────────────────────────────────── */}
       {entrenamientos.map((item) => (
         <section key={item.ejercicio.id} className="mb-6">
-          <EntrenamientoCard ejercicio={item.ejercicio} fecha={fechaSeleccionada} />
+          <EntrenamientoCard
+            ejercicio={item.ejercicio}
+            fecha={fechaSeleccionada}
+            comentarioEntrenador={item.comentarioEntrenador}
+          />
         </section>
       ))}
 
@@ -266,7 +353,11 @@ export default function AgendaPage() {
       )}
       {tests.map((item) => (
         <section key={item.ejercicio.id} className="mb-6">
-          <TestCard ejercicio={item.ejercicio} fecha={fechaSeleccionada} />
+          <TestCard
+            ejercicio={item.ejercicio}
+            fecha={fechaSeleccionada}
+            comentarioEntrenador={item.comentarioEntrenador}
+          />
         </section>
       ))}
 

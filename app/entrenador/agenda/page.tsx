@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Copy, X } from "lucide-react";
+import { Plus, Trash2, Copy, X, Pencil, Check, ImagePlus, Lock } from "lucide-react";
 import { useMockAuth } from "@/context/MockAuthContext";
 import { getItemsUnicosPorDia } from "@/lib/dedup";
 import {
@@ -30,7 +30,6 @@ const GRUPOS_DISPONIBLES: Grupo[] = [
   "Fullback",
 ];
 
-// Color coding by clase group
 function claseColor(clase: Clase): string {
   const grupo = CLASES_DISPONIBLES.find((cg) => cg.clases.includes(clase))?.grupo;
   if (grupo === "Capacidades")
@@ -42,12 +41,12 @@ function claseColor(clase: Clase): string {
 
 function claseFiltroActivo(clase: Clase): string {
   const grupo = CLASES_DISPONIBLES.find((cg) => cg.clases.includes(clase))?.grupo;
-  if (grupo === "Capacidades") return "bg-primary-container text-on-primary-fixed border-primary-container";
-  if (grupo === "Zonas") return "bg-secondary text-on-secondary border-secondary";
+  if (grupo === "Capacidades")
+    return "bg-primary-container text-on-primary-fixed border-primary-container";
+  if (grupo === "Zonas")
+    return "bg-secondary text-on-secondary border-secondary";
   return "bg-surface-container-highest text-on-surface border-outline";
 }
-
-// ─── Componente: badge de clase ───────────────────────────────────────────────
 
 function ClaseBadge({ clase }: { clase: Clase }) {
   return (
@@ -56,6 +55,57 @@ function ClaseBadge({ clase }: { clase: Clase }) {
     >
       {clase}
     </span>
+  );
+}
+
+// ─── Componente: inline editor de comentario ──────────────────────────────────
+
+function ComentarioEditor({
+  agendaItemId,
+  comentarioInicial,
+  onClose,
+}: {
+  agendaItemId: string;
+  comentarioInicial: string;
+  onClose: () => void;
+}) {
+  const { editarComentarioAgenda } = useMockAuth();
+  const [valor, setValor] = useState(comentarioInicial);
+
+  function handleGuardar() {
+    editarComentarioAgenda(agendaItemId, valor.trim());
+    onClose();
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-outline-variant/50">
+      <label className="block font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase mb-2">
+        Comentario del entrenador
+      </label>
+      <textarea
+        value={valor}
+        onChange={(e) => setValor(e.target.value)}
+        rows={2}
+        autoFocus
+        placeholder="Ej: 3 series × 5 reps al 85% RM. Descanso 2 min."
+        className="w-full bg-surface-container-low border border-primary-container/40 rounded-lg px-3 py-2 text-on-surface font-inter text-xs focus:border-primary-container focus:outline-none resize-none placeholder:text-on-surface-variant/40"
+      />
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={handleGuardar}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-fixed font-jetbrains text-[9px] tracking-widest font-black rounded-lg hover:opacity-90 transition-all"
+        >
+          <Check size={10} />
+          GUARDAR
+        </button>
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-jetbrains text-[9px] tracking-widest rounded-lg border border-outline-variant hover:border-outline transition-all"
+        >
+          CANCELAR
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -72,9 +122,10 @@ export default function EntrenadorAgendaPage() {
     clonarItemAgenda,
     agregarItemAgenda,
     agregarEjercicioPersonalizado,
+    eliminarEjercicioPersonalizado,
   } = useMockAuth();
 
-  // ── Estado del formulario ────────────────────────────────────────────────────
+  // ── Estado del formulario ─────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
   const [formTab, setFormTab] = useState<"catalogo" | "nuevo">("catalogo");
 
@@ -82,18 +133,26 @@ export default function EntrenadorAgendaPage() {
   const [filtroFormClases, setFiltroFormClases] = useState<Clase[]>([]);
   const [newEjercicioId, setNewEjercicioId] = useState(todosLosEjercicios[0]?.id ?? "");
   const [newTargets, setNewTargets] = useState<Grupo[]>(["Plantel Completo"]);
+  const [newComentario, setNewComentario] = useState("");
 
-  // Pestaña "Nuevo ejercicio"
+  // Pestaña "Nuevo ejercicio" — solo campos de catálogo, sin agenda
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevoTipo, setNuevoTipo] = useState<TipoItem>("ejercicio");
   const [nuevoDesc, setNuevoDesc] = useState("");
   const [nuevoUnidad, setNuevoUnidad] = useState("");
   const [nuevoClases, setNuevoClases] = useState<Clase[]>([]);
-  const [nuevoTargets, setNuevoTargets] = useState<Grupo[]>(["Plantel Completo"]);
+  // Éxito al guardar en catálogo: muestra flash + opción de asignar
+  const [nuevoCreado, setNuevoCreado] = useState<{ id: string; nombre: string } | null>(null);
+  // Imágenes del nuevo ejercicio
+  const [nuevoImagenes, setNuevoImagenes] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState("");
+  const [arrastrando, setArrastrando] = useState(false);
 
-  // ── Filtro de clases en la lista ─────────────────────────────────────────────
+  // ── Filtro de clases en la lista ─────────────────────────────────────────
   const [filtroClases, setFiltroClases] = useState<Clase[]>([]);
   const [cloningId, setCloningId] = useState<string | null>(null);
+  // id del item que tiene el editor de comentario abierto
+  const [editandoComentarioId, setEditandoComentarioId] = useState<string | null>(null);
 
   const items = useMemo(
     () => getItemsUnicosPorDia(fechaSeleccionada, agenda, todosLosEjercicios),
@@ -109,7 +168,6 @@ export default function EntrenadorAgendaPage() {
 
   const diasClone = DIAS_SEMANA.filter((d) => d.fecha !== fechaSeleccionada);
 
-  // Ejercicios del catálogo filtrados por clase (para el formulario)
   const ejerciciosCatalogo = useMemo(() => {
     if (filtroFormClases.length === 0) return todosLosEjercicios;
     return todosLosEjercicios.filter((e) =>
@@ -119,7 +177,7 @@ export default function EntrenadorAgendaPage() {
 
   if (!usuarioActivo) return null;
 
-  // ── Handlers ─────────────────────────────────────────────────────────────────
+  // ── Handlers ─────────────────────────────────────────────────────────────
 
   function toggleFiltro(c: Clase) {
     setFiltroClases((prev) =>
@@ -139,16 +197,25 @@ export default function EntrenadorAgendaPage() {
     );
   }
 
-  function toggleNuevoTarget(g: Grupo) {
-    setNuevoTargets((prev) =>
-      prev.includes(g) ? prev.filter((t) => t !== g) : [...prev, g]
-    );
-  }
-
   function toggleNuevoClase(c: Clase) {
     setNuevoClases((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
     );
+  }
+
+  function resetForm() {
+    setShowForm(false);
+    setFiltroFormClases([]);
+    setNewTargets(["Plantel Completo"]);
+    setNewComentario("");
+    setNuevoNombre("");
+    setNuevoTipo("ejercicio");
+    setNuevoDesc("");
+    setNuevoUnidad("");
+    setNuevoClases([]);
+    setNuevoCreado(null);
+    setNuevoImagenes([]);
+    setUrlInput("");
   }
 
   function handleAgregarDesdeCatalogo() {
@@ -157,35 +224,58 @@ export default function EntrenadorAgendaPage() {
       ejercicioId: newEjercicioId,
       fecha: fechaSeleccionada,
       targets: newTargets,
+      comentarioEntrenador: newComentario.trim() || undefined,
     });
-    setShowForm(false);
-    setFiltroFormClases([]);
-    setNewTargets(["Plantel Completo"]);
+    resetForm();
   }
 
-  function handleCrearNuevo() {
-    if (!nuevoNombre.trim() || !nuevoTargets.length) return;
+  function handleGuardarEnCatalogo() {
+    if (!nuevoNombre.trim()) return;
     const newId = `custom_ej_${Date.now()}`;
+    const nombre = nuevoNombre.trim();
     agregarEjercicioPersonalizado({
       id: newId,
-      nombre: nuevoNombre.trim(),
+      nombre,
       tipo: nuevoTipo,
       descripcion: nuevoDesc.trim(),
       unidad: nuevoUnidad.trim() || undefined,
       icono: nuevoTipo === "test" ? "analytics" : "fitness_center",
       clases: nuevoClases,
+      imagenes: nuevoImagenes,
+      esGlobal: false,
     });
-    agregarItemAgenda({
-      ejercicioId: newId,
-      fecha: fechaSeleccionada,
-      targets: nuevoTargets,
-    });
-    setShowForm(false);
+    // Mostrar flash de éxito, resetear campos para el siguiente ejercicio
+    setNuevoCreado({ id: newId, nombre });
     setNuevoNombre("");
+    setNuevoTipo("ejercicio");
     setNuevoDesc("");
     setNuevoUnidad("");
     setNuevoClases([]);
-    setNuevoTargets(["Plantel Completo"]);
+    setNuevoImagenes([]);
+    setUrlInput("");
+  }
+
+  function handleAsignarNuevoCreado() {
+    if (!nuevoCreado) return;
+    setNewEjercicioId(nuevoCreado.id);
+    setFiltroFormClases([]);
+    setFormTab("catalogo");
+    setNuevoCreado(null);
+  }
+
+  function handleAddUrl() {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    setNuevoImagenes((prev) => [...prev, trimmed]);
+    setUrlInput("");
+  }
+
+  function handleEliminarDelCatalogo(id: string) {
+    eliminarEjercicioPersonalizado(id);
+    if (newEjercicioId === id) {
+      const remaining = ejerciciosCatalogo.filter((e) => e.id !== id);
+      setNewEjercicioId(remaining[0]?.id ?? "");
+    }
   }
 
   function handleClone(id: string, fecha: string) {
@@ -256,7 +346,7 @@ export default function EntrenadorAgendaPage() {
           {/* Tabs */}
           <div className="flex gap-1 mb-5 border-b border-outline-variant pb-1">
             <button
-              onClick={() => setFormTab("catalogo")}
+              onClick={() => { setFormTab("catalogo"); setNuevoCreado(null); }}
               className={`px-4 py-2 font-jetbrains text-[10px] tracking-widest rounded-t-lg transition-all ${
                 formTab === "catalogo"
                   ? "text-primary-container border-b-2 border-primary-container"
@@ -273,7 +363,7 @@ export default function EntrenadorAgendaPage() {
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              NUEVO EJERCICIO
+              + NUEVO EJERCICIO
             </button>
           </div>
 
@@ -283,7 +373,6 @@ export default function EntrenadorAgendaPage() {
               <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase">
                 Filtrar catálogo por clase
               </p>
-              {/* Filtro de clases para el catálogo */}
               <div className="space-y-2">
                 {CLASES_DISPONIBLES.map((cg) => (
                   <div key={cg.grupo} className="flex flex-wrap gap-1.5 items-center">
@@ -309,7 +398,6 @@ export default function EntrenadorAgendaPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {/* Dropdown de ejercicios filtrado */}
                 <div>
                   <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
                     Ejercicio / Test{" "}
@@ -324,21 +412,67 @@ export default function EntrenadorAgendaPage() {
                       Sin coincidencias para las clases seleccionadas.
                     </p>
                   ) : (
-                    <select
-                      value={newEjercicioId}
-                      onChange={(e) => setNewEjercicioId(e.target.value)}
-                      className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-on-surface font-inter text-sm focus:border-primary-container focus:outline-none"
-                    >
-                      {ejerciciosCatalogo.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          [{e.tipo === "test" ? "TEST" : "EJE"}] {e.nombre}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="max-h-56 overflow-y-auto rounded-lg border border-outline-variant divide-y divide-outline-variant/40">
+                      {ejerciciosCatalogo.map((e) => {
+                        const seleccionado = newEjercicioId === e.id;
+                        return (
+                          <div
+                            key={e.id}
+                            onClick={() => setNewEjercicioId(e.id)}
+                            className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-all ${
+                              seleccionado
+                                ? "bg-primary-container/12 border-l-2 border-primary-container"
+                                : "hover:bg-surface-container-high border-l-2 border-transparent"
+                            }`}
+                          >
+                            {/* Tipo */}
+                            <span
+                              className={`flex-shrink-0 font-jetbrains text-[8px] tracking-widest px-1.5 py-0.5 rounded border ${
+                                e.tipo === "test"
+                                  ? "border-secondary/40 text-secondary bg-secondary/10"
+                                  : "border-primary-container/40 text-primary-container bg-primary-container/10"
+                              }`}
+                            >
+                              {e.tipo === "test" ? "TEST" : "EJE"}
+                            </span>
+
+                            {/* Origen */}
+                            <span
+                              className={`flex-shrink-0 font-jetbrains text-[8px] tracking-widest px-1.5 py-0.5 rounded border ${
+                                e.esGlobal
+                                  ? "border-outline-variant text-on-surface-variant/50 bg-surface-container-high"
+                                  : "border-primary-container/25 text-primary-container/75 bg-primary-container/6"
+                              }`}
+                            >
+                              {e.esGlobal ? "GLOBAL" : "EQUIPO"}
+                            </span>
+
+                            {/* Nombre */}
+                            <span className="flex-1 font-inter text-sm text-on-surface truncate">
+                              {e.nombre}
+                            </span>
+
+                            {/* Acciones */}
+                            {e.esGlobal ? (
+                              <span title="Ejercicio base — no se puede eliminar">
+                                <Lock size={11} className="flex-shrink-0 text-on-surface-variant/30" />
+                              </span>
+                            ) : (
+                              <button
+                                onClick={(ev) => { ev.stopPropagation(); handleEliminarDelCatalogo(e.id); }}
+                                className="flex-shrink-0 p-1 rounded text-on-surface-variant/50 hover:text-error hover:bg-error/10 transition-all"
+                                title="Eliminar del catálogo"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
-                {/* Targets */}
                 <div>
                   <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
                     Asignar a
@@ -361,6 +495,23 @@ export default function EntrenadorAgendaPage() {
                 </div>
               </div>
 
+              {/* Comentario del entrenador */}
+              <div>
+                <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
+                  Comentario del entrenador{" "}
+                  <span className="text-on-surface-variant/50 normal-case font-normal tracking-normal">
+                    (opcional)
+                  </span>
+                </label>
+                <textarea
+                  value={newComentario}
+                  onChange={(e) => setNewComentario(e.target.value)}
+                  rows={2}
+                  placeholder="Ej: 3 series × 5 reps al 85% RM. Mínimo 10 kg de resistencia en banda."
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-on-surface font-inter text-sm focus:border-primary-container focus:outline-none resize-none placeholder:text-on-surface-variant/40"
+                />
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleAgregarDesdeCatalogo}
@@ -370,7 +521,7 @@ export default function EntrenadorAgendaPage() {
                   CONFIRMAR
                 </button>
                 <button
-                  onClick={() => { setShowForm(false); setFiltroFormClases([]); }}
+                  onClick={resetForm}
                   className="px-6 py-2.5 bg-surface-container-high text-on-surface-variant font-jetbrains text-[11px] tracking-widest rounded-lg border border-outline-variant hover:border-outline transition-all"
                 >
                   CANCELAR
@@ -378,10 +529,31 @@ export default function EntrenadorAgendaPage() {
               </div>
             </div>
           ) : (
-            /* ── Pestaña: Nuevo ejercicio ── */
+            /* ── Pestaña: Nuevo ejercicio (solo catálogo) ── */
             <div className="space-y-4">
+
+              {/* Flash de éxito */}
+              {nuevoCreado && (
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-container/10 border border-primary-container/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Check size={14} className="text-primary-container flex-shrink-0" />
+                    <p className="font-inter text-xs text-on-surface">
+                      <span className="font-semibold text-primary-container">
+                        {nuevoCreado.nombre}
+                      </span>{" "}
+                      guardado en el catálogo.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleAsignarNuevoCreado}
+                    className="flex-shrink-0 px-3 py-1.5 bg-primary-container text-on-primary-fixed font-jetbrains text-[9px] tracking-widest font-black rounded-lg hover:opacity-90 transition-all whitespace-nowrap"
+                  >
+                    ASIGNAR A ESTE DÍA →
+                  </button>
+                </div>
+              )}
+
               <div className="grid md:grid-cols-2 gap-4">
-                {/* Nombre */}
                 <div>
                   <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
                     Nombre *
@@ -389,13 +561,12 @@ export default function EntrenadorAgendaPage() {
                   <input
                     type="text"
                     value={nuevoNombre}
-                    onChange={(e) => setNuevoNombre(e.target.value)}
+                    onChange={(e) => { setNuevoNombre(e.target.value); setNuevoCreado(null); }}
                     placeholder="Ej: Remo con Barra"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-on-surface font-inter text-sm focus:border-primary-container focus:outline-none placeholder:text-on-surface-variant/40"
                   />
                 </div>
 
-                {/* Tipo */}
                 <div>
                   <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
                     Tipo *
@@ -420,21 +591,22 @@ export default function EntrenadorAgendaPage() {
                 </div>
               </div>
 
-              {/* Descripción */}
               <div>
                 <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
-                  Descripción / Instrucciones
+                  Descripción{" "}
+                  <span className="text-on-surface-variant/50 normal-case font-normal tracking-normal">
+                    (instrucciones técnicas del movimiento)
+                  </span>
                 </label>
                 <textarea
                   value={nuevoDesc}
                   onChange={(e) => setNuevoDesc(e.target.value)}
                   rows={3}
-                  placeholder="Instrucciones de ejecución, series, repeticiones..."
+                  placeholder="Descripción técnica del movimiento, puntos clave de ejecución..."
                   className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-on-surface font-inter text-sm focus:border-primary-container focus:outline-none resize-none placeholder:text-on-surface-variant/40"
                 />
               </div>
 
-              {/* Unidad (solo para tests) */}
               {nuevoTipo === "test" && (
                 <div className="md:w-1/2">
                   <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
@@ -450,7 +622,6 @@ export default function EntrenadorAgendaPage() {
                 </div>
               )}
 
-              {/* Clases */}
               <div>
                 <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-3">
                   Clases{" "}
@@ -483,41 +654,108 @@ export default function EntrenadorAgendaPage() {
                 </div>
               </div>
 
-              {/* Targets para asignación */}
+              {/* Imágenes */}
               <div>
-                <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-2">
-                  Asignar también al día {labelDia?.label} {labelDia?.numero}
+                <label className="block font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase mb-3">
+                  Imágenes{" "}
+                  <span className="text-on-surface-variant/50 normal-case font-normal tracking-normal">
+                    (opcional)
+                  </span>
                 </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {GRUPOS_DISPONIBLES.map((g) => (
-                    <button
-                      key={g}
-                      onClick={() => toggleNuevoTarget(g)}
-                      className={`px-2.5 py-1 rounded font-jetbrains text-[9px] tracking-wider border transition-all ${
-                        nuevoTargets.includes(g)
-                          ? "bg-primary-container text-on-primary-fixed border-primary-container"
-                          : "bg-surface-container-high text-on-surface-variant border-outline-variant hover:border-outline"
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
+
+                {/* Zona de arrastre */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setArrastrando(true); }}
+                  onDragLeave={() => setArrastrando(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setArrastrando(false);
+                    Array.from(e.dataTransfer.files)
+                      .filter((f) => f.type.startsWith("image/"))
+                      .forEach((file) => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result === "string") {
+                            setNuevoImagenes((prev) => [...prev, reader.result as string]);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                  }}
+                  className={`flex flex-col items-center justify-center gap-2 py-5 rounded-xl border-2 border-dashed transition-all ${
+                    arrastrando
+                      ? "border-primary-container bg-primary-container/10"
+                      : "border-outline-variant hover:border-outline"
+                  }`}
+                >
+                  <ImagePlus size={18} className="text-on-surface-variant/50" />
+                  <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase">
+                    Arrastrá imágenes aquí
+                  </p>
                 </div>
+
+                {/* Input de URL */}
+                <div className="flex gap-2 mt-3">
+                  <input
+                    type="url"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddUrl(); } }}
+                    placeholder="https://... (URL de imagen)"
+                    className="flex-1 bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-inter text-sm focus:border-primary-container focus:outline-none placeholder:text-on-surface-variant/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddUrl}
+                    disabled={!urlInput.trim()}
+                    className="px-4 py-2 bg-primary-container text-on-primary-fixed font-jetbrains text-[10px] tracking-widest font-black rounded-lg hover:opacity-90 disabled:opacity-30 transition-all"
+                  >
+                    AÑADIR
+                  </button>
+                </div>
+
+                {/* Thumbnails */}
+                {nuevoImagenes.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {nuevoImagenes.map((url, i) => (
+                      <div key={i} className="relative group">
+                        <img
+                          src={url}
+                          alt=""
+                          className="w-16 h-12 object-cover rounded-lg border border-outline-variant"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNuevoImagenes((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={8} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex gap-3 pt-2">
+              {/* Nota informativa */}
+              <p className="font-jetbrains text-[9px] tracking-wider text-on-surface-variant/60 leading-relaxed">
+                El ejercicio se guardará en el catálogo. Para asignarlo a un día de la agenda,
+                usá la pestaña <span className="text-on-surface-variant">DESDE CATÁLOGO</span>.
+              </p>
+
+              <div className="flex gap-3 pt-1">
                 <button
-                  onClick={handleCrearNuevo}
-                  disabled={!nuevoNombre.trim() || !nuevoTargets.length}
+                  onClick={handleGuardarEnCatalogo}
+                  disabled={!nuevoNombre.trim()}
                   className="px-6 py-2.5 bg-primary-container text-on-primary-fixed font-jetbrains text-[11px] tracking-widest font-black rounded-lg hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  CREAR Y AGREGAR
+                  GUARDAR EN CATÁLOGO
                 </button>
                 <button
-                  onClick={() => setShowForm(false)}
+                  onClick={resetForm}
                   className="px-6 py-2.5 bg-surface-container-high text-on-surface-variant font-jetbrains text-[11px] tracking-widest rounded-lg border border-outline-variant hover:border-outline transition-all"
                 >
-                  CANCELAR
+                  CERRAR
                 </button>
               </div>
             </div>
@@ -607,7 +845,7 @@ export default function EntrenadorAgendaPage() {
                     {item.ejercicio.descripcion}
                   </p>
 
-                  {/* Clases del ejercicio */}
+                  {/* Clases */}
                   {item.ejercicio.clases.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {item.ejercicio.clases.map((c) => (
@@ -616,8 +854,36 @@ export default function EntrenadorAgendaPage() {
                     </div>
                   )}
 
+                  {/* Thumbnails de imágenes */}
+                  {item.ejercicio.imagenes.length > 0 && (
+                    <div className="flex items-center gap-2 mt-2 mb-1">
+                      <img
+                        src={item.ejercicio.imagenes[0]}
+                        alt=""
+                        className="w-20 h-16 object-cover rounded-lg border border-outline-variant flex-shrink-0"
+                      />
+                      {item.ejercicio.imagenes.length > 1 && (
+                        <span className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant">
+                          +{item.ejercicio.imagenes.length - 1} foto{item.ejercicio.imagenes.length - 1 > 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Comentario del entrenador */}
+                  {item.comentarioEntrenador && editandoComentarioId !== item.id && (
+                    <div className="mt-2 flex items-start gap-2 p-2.5 bg-primary-container/8 border border-primary-container/20 rounded-lg">
+                      <span className="font-jetbrains text-[9px] tracking-widest text-primary-container uppercase flex-shrink-0 mt-0.5">
+                        Coach
+                      </span>
+                      <p className="font-inter text-xs text-on-surface leading-relaxed">
+                        {item.comentarioEntrenador}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Targets */}
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {item.targets.map((t) => (
                       <span
                         key={t}
@@ -627,10 +893,36 @@ export default function EntrenadorAgendaPage() {
                       </span>
                     ))}
                   </div>
+
+                  {/* Editor inline de comentario */}
+                  {editandoComentarioId === item.id && (
+                    <ComentarioEditor
+                      agendaItemId={item.id}
+                      comentarioInicial={item.comentarioEntrenador ?? ""}
+                      onClose={() => setEditandoComentarioId(null)}
+                    />
+                  )}
                 </div>
 
                 {/* Acciones */}
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Editar comentario */}
+                  <button
+                    onClick={() =>
+                      setEditandoComentarioId(
+                        editandoComentarioId === item.id ? null : item.id
+                      )
+                    }
+                    className={`p-2 rounded-lg border transition-all ${
+                      editandoComentarioId === item.id || item.comentarioEntrenador
+                        ? "border-primary-container/40 text-primary-container bg-primary-container/10"
+                        : "border-outline-variant text-on-surface-variant hover:text-primary-container hover:border-primary-container/40"
+                    }`}
+                    title={item.comentarioEntrenador ? "Modificar comentario" : "Agregar comentario"}
+                  >
+                    <Pencil size={14} />
+                  </button>
+
                   {/* Clonar */}
                   <div className="relative">
                     <button
@@ -700,6 +992,14 @@ export default function EntrenadorAgendaPage() {
             </p>
             <p className="font-jetbrains font-bold text-xl text-secondary">
               {items.filter((i) => i.ejercicio.tipo === "test").length}
+            </p>
+          </div>
+          <div>
+            <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase">
+              Con comentario
+            </p>
+            <p className="font-jetbrains font-bold text-xl text-on-surface">
+              {items.filter((i) => i.comentarioEntrenador).length}
             </p>
           </div>
           {filtroClases.length > 0 && (

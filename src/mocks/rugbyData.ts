@@ -171,6 +171,9 @@ export const STAFF: StaffUser[] = [
 
 // ─── Plantillas de ejercicios y tests ────────────────────────────────────────
 
+export const IMAGEN_FALLBACK =
+  "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=800";
+
 export interface EjercicioTemplate {
   id: string;
   nombre: string;
@@ -179,6 +182,8 @@ export interface EjercicioTemplate {
   unidad?: string;
   icono: string;
   clases: Clase[];
+  imagenes: string[];
+  esGlobal: boolean;
 }
 
 export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
@@ -190,6 +195,11 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
       "Priorizar la fase excéntrica lenta (3 seg). Mantener el core bloqueado en todo momento. 4 series de 8 repeticiones al 75% RM. Enfoque total en la explosividad vertical.",
     icono: "fitness_center",
     clases: ["Fuerza", "Potencia", "Tren Superior"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800",
+      "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800",
+    ],
+    esGlobal: true,
   },
   {
     id: "ej2",
@@ -199,6 +209,11 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
       "Posición de pies a la anchura de los hombros. Descenso controlado de 3 segundos. 5 series de 5 repeticiones al 85% RM.",
     icono: "fitness_center",
     clases: ["Fuerza", "Tren Inferior"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800",
+      "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800",
+    ],
+    esGlobal: true,
   },
   {
     id: "ej3",
@@ -208,6 +223,10 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
       "Salida desde posición de arranque. 8 repeticiones con 90 segundos de recuperación entre cada una. Cronometrar cada rep.",
     icono: "directions_run",
     clases: ["Velocidad", "Potencia", "Full Body"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800",
+    ],
+    esGlobal: true,
   },
   {
     id: "ej4",
@@ -217,6 +236,35 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
       "Pase con resistencia de banda elástica. 3 series de 15 repeticiones por lado. Foco en la mecánica de pase.",
     icono: "sports_rugby",
     clases: ["Destrezas", "Tren Superior"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=800",
+      "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800",
+    ],
+    esGlobal: true,
+  },
+  {
+    id: "ej5",
+    nombre: "Fuerza en Banco Plano",
+    tipo: "ejercicio",
+    descripcion:
+      "Press de banca con barra. Agarre ligeramente más ancho que los hombros. Descenso controlado tocando el pecho. 4 series de 6 repeticiones al 80% RM.",
+    icono: "fitness_center",
+    clases: ["Fuerza", "Potencia", "Tren Superior"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1567598508481-65985588e295?w=800",
+    ],
+    esGlobal: true,
+  },
+  {
+    id: "ej6",
+    nombre: "Prevención de Cuello",
+    tipo: "ejercicio",
+    descripcion:
+      "Rutina de fortalecimiento cervical con banda elástica: flexión, extensión y laterales. 3 series de 20 repeticiones lentas en cada dirección. Fundamental para forwards.",
+    icono: "fitness_center",
+    clases: ["Prevención", "Tren Superior"],
+    imagenes: [],
+    esGlobal: true,
   },
   {
     id: "test1",
@@ -227,6 +275,10 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
     unidad: "metros",
     icono: "analytics",
     clases: ["Resistencia", "Full Body"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800",
+    ],
+    esGlobal: true,
   },
   {
     id: "test2",
@@ -237,6 +289,10 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
     unidad: "kg",
     icono: "analytics",
     clases: ["Fuerza", "Tren Inferior"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800",
+    ],
+    esGlobal: true,
   },
   {
     id: "test3",
@@ -247,6 +303,11 @@ export const EJERCICIOS_TEMPLATE: EjercicioTemplate[] = [
     unidad: "seg",
     icono: "analytics",
     clases: ["Velocidad", "Full Body"],
+    imagenes: [
+      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800",
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800",
+    ],
+    esGlobal: true,
   },
 ];
 
@@ -259,6 +320,7 @@ export interface AgendaItem {
   ejercicioId: string;
   fecha: string; // YYYY-MM-DD
   targets: Grupo[];
+  comentarioEntrenador?: string;
 }
 
 export const AGENDA: AgendaItem[] = [
@@ -268,12 +330,14 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej1",
     fecha: "2026-05-19",
     targets: ["Forwards", "Plantel Completo"],
+    comentarioEntrenador: "4 series × 8 reps al 75% RM. Fase excéntrica lenta: 3 seg. Descansen 90 seg entre series.",
   },
   {
     id: "a2",
     ejercicioId: "ej4",
     fecha: "2026-05-19",
     targets: ["Backs"],
+    comentarioEntrenador: "Foco en la mecánica de pase bajo presión. 3 series × 15 reps por lado.",
   },
 
   // ── Martes 20 (HOY) ─────────────────────────────────────────────────────
@@ -284,18 +348,21 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej2",
     fecha: "2026-05-20",
     targets: ["Forwards"],
+    comentarioEntrenador: "5 series × 5 reps al 85% RM. Forwards: priorizá profundidad de sentadilla.",
   },
   {
     id: "a4",
     ejercicioId: "ej2",
     fecha: "2026-05-20",
     targets: ["1ra Línea"],
+    comentarioEntrenador: "5 series × 5 reps al 85% RM. Forwards: priorizá profundidad de sentadilla.",
   },
   {
     id: "a5",
     ejercicioId: "ej3",
     fecha: "2026-05-20",
     targets: ["Plantel Completo"],
+    comentarioEntrenador: "8 repeticiones, 90 seg de recuperación entre cada sprint. Registren su mejor tiempo.",
   },
   {
     id: "a6",
@@ -310,12 +377,14 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej4",
     fecha: "2026-05-20",
     targets: ["Backs"],
+    comentarioEntrenador: "Backs: énfasis en velocidad de liberación. Mínimo 20 pases limpios por serie.",
   },
   {
     id: "a7b",
     ejercicioId: "ej4",
     fecha: "2026-05-20",
     targets: ["1er Centro"],
+    comentarioEntrenador: "Backs: énfasis en velocidad de liberación. Mínimo 20 pases limpios por serie.",
   },
 
   // ── Miércoles 21 ────────────────────────────────────────────────────────
@@ -324,12 +393,14 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej1",
     fecha: "2026-05-21",
     targets: ["Forwards"],
+    comentarioEntrenador: "Carga reducida post-martes. 3 series × 10 reps al 65% RM. Foco en técnica.",
   },
   {
     id: "a9",
     ejercicioId: "ej3",
     fecha: "2026-05-21",
     targets: ["Backs"],
+    comentarioEntrenador: "Backs: velocidad máxima. 6 repeticiones con 2 min de recuperación.",
   },
   {
     id: "a10",
@@ -344,6 +415,7 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej2",
     fecha: "2026-05-22",
     targets: ["Plantel Completo"],
+    comentarioEntrenador: "Día de volumen: 4 series × 8 reps al 70% RM. Todos los grupos.",
   },
 
   // ── Viernes 23 ──────────────────────────────────────────────────────────
@@ -352,6 +424,7 @@ export const AGENDA: AgendaItem[] = [
     ejercicioId: "ej3",
     fecha: "2026-05-23",
     targets: ["Plantel Completo"],
+    comentarioEntrenador: "Últimas repeticiones de la semana. Objetivo: mantener tiempo del martes o mejor.",
   },
   // a13 + a13b: duplicado para Wing/Backs — Lucía solo ve 1 tarjeta
   {

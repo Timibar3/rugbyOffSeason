@@ -1,16 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Star, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, FlaskConical } from "lucide-react";
+import { useMockAuth } from "@/context/MockAuthContext";
 import {
   JUGADORES,
   METRICAS_HISTORICAS,
-  EJERCICIOS_TEMPLATE,
   getGruposDeJugador,
   Grupo,
+  MetricaHistorica,
 } from "@/mocks/rugbyData";
 
-// ─── Árbol de jerarquías para los filtros ─────────────────────────────────────
+// ─── Árbol de jerarquías ──────────────────────────────────────────────────────
 
 interface NodoFiltro {
   label: string;
@@ -77,7 +78,9 @@ function NodoFiltroItem({
       >
         <span>{nodo.label}</span>
         {nodo.hijos && (
-          <span className="text-xs text-on-surface-variant">{expandido ? "▾" : "▸"}</span>
+          <span className="text-xs text-on-surface-variant">
+            {expandido ? "▾" : "▸"}
+          </span>
         )}
       </button>
       {nodo.hijos && expandido && (
@@ -97,18 +100,79 @@ function NodoFiltroItem({
   );
 }
 
+// ─── Generador de mock data para tests sin historial ──────────────────────────
+// Determinístico: mismos valores para el mismo testId entre renders.
+
+function generarMetricaMock(testId: string): MetricaHistorica {
+  const seed = testId
+    .split("")
+    .reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0);
+  const baseGlobal = 40 + (seed % 120);
+  const semanas = ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Actual"];
+
+  const porJugador: Record<string, number[]> = {};
+  JUGADORES.forEach((j) => {
+    const pSeed = j.id
+      .split("")
+      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const base = baseGlobal + ((pSeed + seed) % 30) - 15;
+    const inc = 2 + ((pSeed * (seed % 7)) % 5);
+    porJugador[j.id] = semanas.map((_, i) =>
+      parseFloat((base + i * inc).toFixed(1))
+    );
+  });
+
+  const promedioEquipo = semanas.map((_, i) =>
+    parseFloat(
+      (
+        Object.values(porJugador).reduce((s, v) => s + v[i], 0) /
+        JUGADORES.length
+      ).toFixed(1)
+    )
+  );
+
+  return { testId, semanas, promedioEquipo, porJugador };
+}
+
 // ─── Página ───────────────────────────────────────────────────────────────────
 
-const TESTS = EJERCICIOS_TEMPLATE.filter((e) => e.tipo === "test");
-
 export default function InformesPage() {
+  const { todosLosEjercicios } = useMockAuth();
+
+  // Tests dinámicos: base + personalizados creados en el catálogo
+  const tests = useMemo(
+    () => todosLosEjercicios.filter((e) => e.tipo === "test"),
+    [todosLosEjercicios]
+  );
+
   const [grupoFiltro, setGrupoFiltro] = useState<Grupo>("Plantel Completo");
-  const [testId, setTestId] = useState(TESTS[0]?.id ?? "test1");
+  // Inicializar con el primer test disponible
+  const [testId, setTestId] = useState(() => tests[0]?.id ?? "");
 
-  const ejercicio = TESTS.find((t) => t.id === testId);
-  const metrica = METRICAS_HISTORICAS.find((m) => m.testId === testId);
+  // Si el testId ya no existe (edge case), caer al primero disponible
+  const testIdValido = tests.some((t) => t.id === testId)
+    ? testId
+    : (tests[0]?.id ?? "");
 
-  // Jugadores filtrados por grupo
+  const ejercicio = tests.find((t) => t.id === testIdValido);
+
+  // Buscar histórico real; si no existe, generar mock determinístico
+  const metrica = useMemo((): MetricaHistorica | null => {
+    if (!testIdValido) return null;
+    return (
+      METRICAS_HISTORICAS.find((m) => m.testId === testIdValido) ??
+      generarMetricaMock(testIdValido)
+    );
+  }, [testIdValido]);
+
+  // Para tests de tiempo, menor es mejor (solo test3 en los datos base)
+  const menorEsMejor = testIdValido === "test3";
+
+  // ¿Es un test creado por el usuario (sin historial real)?
+  const esTestPersonalizado = !METRICAS_HISTORICAS.some(
+    (m) => m.testId === testIdValido
+  );
+
   const jugadoresFiltrados = useMemo(() => {
     if (grupoFiltro === "Plantel Completo") return JUGADORES;
     return JUGADORES.filter((j) =>
@@ -116,34 +180,44 @@ export default function InformesPage() {
     );
   }, [grupoFiltro]);
 
-  // Ranking: último valor de cada jugador, ordenado
   const ranking = useMemo(() => {
     if (!metrica) return [];
-    const items = jugadoresFiltrados.map((j) => {
-      const valores = metrica.porJugador[j.id] ?? [];
-      const ultimo = valores.at(-1) ?? 0;
-      const anterior = valores.at(-2) ?? ultimo;
-      const tendencia = testId === "test3"
-        ? anterior - ultimo // para tiempo: menor es mejor
-        : ultimo - anterior;
-      return { jugador: j, ultimo, tendencia };
-    });
-    // Ordenar: para tiempo (test3) menor es mejor, para el resto mayor es mejor
-    return items.sort((a, b) =>
-      testId === "test3" ? a.ultimo - b.ultimo : b.ultimo - a.ultimo
-    );
-  }, [jugadoresFiltrados, metrica, testId]);
+    return jugadoresFiltrados
+      .map((j) => {
+        const valores = metrica.porJugador[j.id] ?? [];
+        const ultimo = valores.at(-1) ?? 0;
+        const anterior = valores.at(-2) ?? ultimo;
+        const tendencia = menorEsMejor ? anterior - ultimo : ultimo - anterior;
+        return { jugador: j, ultimo, tendencia };
+      })
+      .sort((a, b) =>
+        menorEsMejor ? a.ultimo - b.ultimo : b.ultimo - a.ultimo
+      );
+  }, [jugadoresFiltrados, metrica, menorEsMejor]);
 
-  // Stats globales
   const promedioEquipo = metrica?.promedioEquipo.at(-1) ?? 0;
   const maxValor = ranking[0]?.ultimo ?? 0;
   const minValor = ranking.at(-1)?.ultimo ?? 0;
 
-  // Barra de progreso normalizada
   function barWidth(valor: number): string {
     if (maxValor === minValor) return "100%";
     const pct = ((valor - minValor) / (maxValor - minValor)) * 100;
     return `${Math.max(pct, 8).toFixed(0)}%`;
+  }
+
+  // ── Sin tests en el catálogo ──────────────────────────────────────────────
+  if (tests.length === 0) {
+    return (
+      <div className="p-6 md:p-[40px] flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <FlaskConical className="text-on-surface-variant mb-4" size={40} />
+        <p className="font-inter font-semibold text-on-surface mb-2">
+          Sin tests en el catálogo
+        </p>
+        <p className="font-jetbrains text-[11px] text-on-surface-variant max-w-xs">
+          Creá al menos un ítem de tipo TEST en el Planificador para ver informes aquí.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -164,6 +238,19 @@ export default function InformesPage() {
         </p>
       </div>
 
+      {/* ── Banner datos simulados ─────────────────────────────── */}
+      {esTestPersonalizado && ejercicio && (
+        <div className="mb-6 flex items-center gap-3 p-3 bg-secondary-container/20 border border-secondary/30 rounded-xl">
+          <FlaskConical size={16} className="text-secondary flex-shrink-0" />
+          <p className="font-inter text-xs text-on-surface-variant leading-relaxed">
+            <span className="font-semibold text-secondary">{ejercicio.nombre}</span>{" "}
+            es un test nuevo — los resultados mostrados son{" "}
+            <span className="font-semibold text-on-surface">datos simulados</span>.
+            Se actualizarán cuando los jugadores carguen sus marcas reales.
+          </p>
+        </div>
+      )}
+
       {/* ── Métricas hero ─────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <div className="bg-surface-container-high p-5 border-l-4 border-primary-container rounded-r-xl">
@@ -173,16 +260,17 @@ export default function InformesPage() {
           <p className="font-jetbrains font-bold text-xl text-primary">
             {promedioEquipo}
             <span className="text-xs font-normal text-on-surface-variant ml-1">
-              {ejercicio?.unidad}
+              {ejercicio?.unidad ?? "—"}
             </span>
           </p>
           <div className="flex items-center gap-1 mt-1">
             <TrendingUp size={11} className="text-primary-container" />
             <span className="font-jetbrains text-[9px] text-primary-container">
-              +2.1% vs semana anterior
+              {esTestPersonalizado ? "Datos simulados" : "+2.1% vs semana anterior"}
             </span>
           </div>
         </div>
+
         <div className="bg-surface-container-high p-5 border-l-4 border-outline-variant rounded-r-xl">
           <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase mb-1">
             Plantel filtrado
@@ -194,6 +282,7 @@ export default function InformesPage() {
             </span>
           </p>
         </div>
+
         <div className="bg-surface-container-high p-5 border-l-4 border-primary-container rounded-r-xl">
           <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase mb-1">
             Top del ranking
@@ -201,10 +290,11 @@ export default function InformesPage() {
           <p className="font-jetbrains font-bold text-xl text-primary-container">
             {maxValor}
             <span className="text-xs font-normal text-on-surface-variant ml-1">
-              {ejercicio?.unidad}
+              {ejercicio?.unidad ?? "—"}
             </span>
           </p>
         </div>
+
         <div className="bg-surface-container-high p-5 border-l-4 border-error rounded-r-xl">
           <p className="font-jetbrains text-[9px] tracking-widest text-on-surface-variant uppercase mb-1">
             Requiere atención
@@ -226,9 +316,12 @@ export default function InformesPage() {
 
       {/* ── Layout principal: filtros + tabla ─────────────────── */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar filtros */}
+
+        {/* ── Sidebar ─────────────────────────────────────────── */}
         <aside className="w-full lg:w-64 flex-shrink-0">
           <div className="bg-surface-container border border-outline-variant rounded-xl p-5 sticky top-24">
+
+            {/* Filtro de plantel */}
             <h3 className="font-jetbrains text-[10px] tracking-[0.15em] text-on-surface-variant uppercase mb-4">
               Filtros de Plantel
             </h3>
@@ -244,66 +337,101 @@ export default function InformesPage() {
               ))}
             </ul>
 
-            {/* Selector de métrica */}
+            {/* Selector de métrica — dinámico */}
             <div className="mt-6 pt-5 border-t border-outline-variant">
               <h4 className="font-jetbrains text-[10px] tracking-[0.12em] text-on-surface-variant uppercase mb-3">
                 Métrica
               </h4>
-              <div className="space-y-2">
-                {TESTS.map((t) => (
-                  <label
-                    key={t.id}
-                    className="flex items-center gap-2.5 cursor-pointer group"
-                  >
-                    <div
+
+              <div className="space-y-1.5">
+                {tests.map((t) => {
+                  const activo = t.id === testIdValido;
+                  const esPersonalizado = !METRICAS_HISTORICAS.some(
+                    (m) => m.testId === t.id
+                  );
+                  return (
+                    <button
+                      key={t.id}
                       onClick={() => setTestId(t.id)}
-                      className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
-                        testId === t.id
-                          ? "bg-primary-container border-primary-container"
-                          : "border-outline-variant group-hover:border-outline"
+                      className={`w-full text-left flex items-start gap-2.5 px-3 py-2.5 rounded-lg transition-all group ${
+                        activo
+                          ? "bg-primary-container/10 border border-primary-container/30"
+                          : "border border-transparent hover:bg-surface-container-high hover:border-outline-variant/50"
                       }`}
                     >
-                      {testId === t.id && (
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#161e00"
-                          strokeWidth={3.5}
+                      {/* Radio visual */}
+                      <div
+                        className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          activo
+                            ? "border-primary-container bg-primary-container"
+                            : "border-outline-variant group-hover:border-outline"
+                        }`}
+                      >
+                        {activo && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-on-primary-fixed" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`font-inter text-xs leading-tight ${
+                            activo
+                              ? "text-primary font-semibold"
+                              : "text-on-surface-variant group-hover:text-on-surface"
+                          }`}
                         >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </div>
-                    <span
-                      onClick={() => setTestId(t.id)}
-                      className={`font-inter text-xs cursor-pointer ${
-                        testId === t.id
-                          ? "text-primary font-medium"
-                          : "text-on-surface-variant group-hover:text-primary"
-                      }`}
-                    >
-                      {t.nombre}
-                    </span>
-                  </label>
-                ))}
+                          {t.nombre}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          {t.unidad && (
+                            <span className="font-jetbrains text-[8px] tracking-wider text-on-surface-variant/60">
+                              {t.unidad}
+                            </span>
+                          )}
+                          {esPersonalizado && (
+                            <span className="font-jetbrains text-[8px] tracking-wider text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">
+                              NUEVO
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Hint: cómo agregar más tests */}
+              <p className="mt-4 font-jetbrains text-[8px] tracking-wider text-on-surface-variant/40 leading-relaxed">
+                Creá tests en el Planificador para verlos aquí automáticamente.
+              </p>
             </div>
           </div>
         </aside>
 
-        {/* Tabla de ranking */}
+        {/* ── Tabla de ranking ─────────────────────────────────── */}
         <div className="flex-1">
           <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+
             {/* Header tabla */}
             <div className="p-5 border-b border-outline-variant bg-white/5 flex justify-between items-center">
               <div>
-                <h3 className="font-jetbrains text-[11px] tracking-widest text-primary uppercase">
-                  Ranking · {ejercicio?.nombre}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-jetbrains text-[11px] tracking-widest text-primary uppercase">
+                    Ranking · {ejercicio?.nombre}
+                  </h3>
+                  {esTestPersonalizado && (
+                    <span className="font-jetbrains text-[8px] tracking-wider text-secondary bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded">
+                      SIMULADO
+                    </span>
+                  )}
+                </div>
                 <p className="font-inter text-xs text-on-surface-variant mt-0.5">
                   {grupoFiltro} · {jugadoresFiltrados.length} jugadores
+                  {ejercicio?.unidad && (
+                    <span className="ml-2 text-on-surface-variant/60">
+                      · medido en {ejercicio.unidad}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -329,7 +457,9 @@ export default function InformesPage() {
                         Posición
                       </th>
                       <th className="p-4 font-jetbrains text-[10px] text-on-surface-variant tracking-widest uppercase">
-                        Resultado
+                        {ejercicio?.unidad
+                          ? `Resultado (${ejercicio.unidad})`
+                          : "Resultado"}
                       </th>
                       <th className="p-4 font-jetbrains text-[10px] text-on-surface-variant tracking-widest uppercase w-32">
                         Rel.
@@ -343,17 +473,20 @@ export default function InformesPage() {
                     {ranking.map(({ jugador, ultimo, tendencia }, idx) => {
                       const esTop = idx === 0;
                       const positivo = tendencia > 0;
+                      const neutro = tendencia === 0;
 
                       return (
                         <tr
                           key={jugador.id}
                           className="hover:bg-primary-container/5 transition-colors group"
                         >
-                          {/* Posición ranking */}
+                          {/* Posición */}
                           <td className="p-4">
                             <span
                               className={`font-jetbrains font-bold text-sm ${
-                                esTop ? "text-primary-container" : "text-on-surface-variant"
+                                esTop
+                                  ? "text-primary-container"
+                                  : "text-on-surface-variant"
                               }`}
                             >
                               {esTop ? "★" : idx + 1}
@@ -374,7 +507,7 @@ export default function InformesPage() {
                             </div>
                           </td>
 
-                          {/* Posición */}
+                          {/* Posición de juego */}
                           <td className="p-4">
                             <span className="font-inter text-xs text-on-surface-variant">
                               {jugador.posiciones.join(" / ")}
@@ -386,9 +519,11 @@ export default function InformesPage() {
                             <span className="font-jetbrains font-bold text-on-surface">
                               {ultimo}
                             </span>
-                            <span className="font-jetbrains text-xs text-on-surface-variant ml-1">
-                              {ejercicio?.unidad}
-                            </span>
+                            {ejercicio?.unidad && (
+                              <span className="font-jetbrains text-xs text-on-surface-variant ml-1">
+                                {ejercicio.unidad}
+                              </span>
+                            )}
                           </td>
 
                           {/* Barra relativa */}
@@ -403,20 +538,26 @@ export default function InformesPage() {
 
                           {/* Estado */}
                           <td className="p-4">
-                            <div
-                              className={`flex items-center gap-1.5 ${
-                                positivo ? "text-primary-container" : "text-error"
-                              }`}
-                            >
-                              {positivo ? (
-                                <TrendingUp size={13} />
-                              ) : (
-                                <TrendingDown size={13} />
-                              )}
-                              <span className="font-jetbrains text-[10px] font-bold tracking-wider">
-                                {positivo ? "MEJORA" : "BAJA"}
+                            {neutro ? (
+                              <span className="font-jetbrains text-[10px] font-bold tracking-wider text-on-surface-variant">
+                                IGUAL
                               </span>
-                            </div>
+                            ) : (
+                              <div
+                                className={`flex items-center gap-1.5 ${
+                                  positivo ? "text-primary-container" : "text-error"
+                                }`}
+                              >
+                                {positivo ? (
+                                  <TrendingUp size={13} />
+                                ) : (
+                                  <TrendingDown size={13} />
+                                )}
+                                <span className="font-jetbrains text-[10px] font-bold tracking-wider">
+                                  {positivo ? "MEJORA" : "BAJA"}
+                                </span>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );
@@ -427,7 +568,7 @@ export default function InformesPage() {
             )}
           </div>
 
-          {/* Insight */}
+          {/* ── Insight ─────────────────────────────────────────── */}
           <div className="mt-4 p-4 bg-primary-container/5 border border-primary-container/20 rounded-xl flex gap-3">
             <span className="text-xl flex-shrink-0">💡</span>
             <div>
@@ -435,7 +576,9 @@ export default function InformesPage() {
                 Staff Insight
               </p>
               <p className="font-inter text-xs text-on-surface-variant leading-relaxed">
-                {ranking.filter((r) => r.tendencia < 0).length > 0
+                {esTestPersonalizado
+                  ? `Los datos de "${ejercicio?.nombre}" son simulados. Asigná este test en la agenda y pedí a los jugadores que carguen sus marcas para ver resultados reales.`
+                  : ranking.filter((r) => r.tendencia < 0).length > 0
                   ? `${ranking.filter((r) => r.tendencia < 0).length} jugador(es) muestran tendencia negativa en ${ejercicio?.nombre}. Considerar ajuste de carga en el próximo microciclo.`
                   : `El plantel muestra evolución positiva en ${ejercicio?.nombre}. Mantener la carga actual para el próximo microciclo.`}
               </p>

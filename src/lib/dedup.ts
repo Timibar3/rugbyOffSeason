@@ -10,6 +10,7 @@ export interface ItemAgendaResuelto {
   agendaItemId: string;
   ejercicio: EjercicioTemplate;
   fecha: string;
+  comentarioEntrenador?: string;
 }
 
 /**
@@ -18,6 +19,7 @@ export interface ItemAgendaResuelto {
  * Un jugador ve una tarjeta por ejercicio por día, incluso si ese ejercicio
  * fue asignado a múltiples jerarquías que el jugador cumple simultáneamente.
  * La clave de deduplicación es: ejercicioId + fecha.
+ * El comentarioEntrenador se toma del primer item que matchea.
  */
 export function getItemsParaJugador(
   posiciones: PosicionFinal[],
@@ -42,6 +44,7 @@ export function getItemsParaJugador(
       agendaItemId: item.id,
       ejercicio,
       fecha: item.fecha,
+      comentarioEntrenador: item.comentarioEntrenador,
     });
   }
 
