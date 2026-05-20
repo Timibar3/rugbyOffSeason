@@ -96,6 +96,12 @@ Wing
 Fullback
 Regla de Negocio Crítica (Deduplicación): Si un ejercicio o test es asignado a múltiples jerarquías (ej: a Forwards y a 3° Línea) y un jugador cumple con ambas condiciones, el sistema debe validar mediante el ID_Ejercicio y Fecha para mostrar la tarjeta una sola vez en la agenda del jugador.
 
+3.1. Diferenciación entre Plantilla (Catálogo) e Instancia (Agenda)
+El sistema debe separar estrictamente la información base del ejercicio de su asignación diaria:
+* **Datos de Plantilla:** Título, Tipo, Clases, Video/Imagen y Descripción técnica del ejercicio. Son de solo lectura para el entrenador al momento de agendar.
+* **Datos de Instancia (Comentario del Entrenador):** Campo de texto libre y modificable único para cada asignación en la agenda. Permite al entrenador especificar las cargas del día (ej: "3 series de 4 con mínimo 10kg"). 
+* **Regla de Clonación y Edición:** Al usar la función "Clonar Ejercicio", la nueva instancia creada en el día de destino heredará el "Comentario del Entrenador" original. El entrenador podrá editar o borrar este comentario en el nuevo día sin que afecte al entrenamiento del día origen ni a la plantilla del catálogo.
+
 4. Historias de Usuario Principales (User Stories)
 Flujo de Onboarding e Ingreso
 Como Head Coach, quiero crear un equipo para obtener un ID único y compartírselo a mis jugadores.
@@ -137,3 +143,38 @@ Seguridad de Datos (RLS - Row Level Security): Se aplicarán políticas estricta
 Los Jugadores solo tienen permiso para leer y escribir sus propias filas de métricas individuales.
 Los Jugadores pueden leer una tabla/vista calculada de "Promedios" generales del equipo.
 Los Entrenadores y Head Coaches tienen permisos RLS para leer todas las filas de todos los jugadores de su equipo.
+
+7. Gestión de Catálogo: Clasificación de Ejercicios y Tests
+
+Para optimizar la búsqueda, organización y balance de las cargas de entrenamiento por parte del staff técnico, el sistema implementará un modelo de etiquetado basado en **Tipos** y **Clases Múltiples**.
+
+7.1. Tipos de Contenido (Excluyente)
+Cada elemento creado en la biblioteca del Administrador debe pertenecer obligatoriamente a una de estas dos categorías raíz:
+* **Ejercicio:** Rutina o bloque de entrenamiento físico/técnico enfocado en la ejecución. Requiere un feedback de estado binario (`Realizado` / `No Realizado`).
+* **Test:** Evaluación física o de rendimiento enfocada en la medición. Requiere la carga obligatoria de un resultado numérico o temporal mapeado a una métrica.
+
+7.2. Sistema de Clases (Etiquetado Múltiple / N-to-N)
+Un mismo Ejercicio o Test puede contener **ninguna, una o varias clases** asignadas de forma simultánea. El árbol de clases oficial de la plataforma se divide en tres ejes:
+
+A. Capacidad Física Principal (Objetivo Fisiológico)
+* `Fuerza`: Enfoque en sobrecarga, hipertrofia o fuerza máxima.
+* `Potencia`: Movimientos explosivos, pliometría o derivados de levantamiento olímpico.
+* `Velocidad`: Sprints, aceleración y velocidad lineal.
+* `Agilidad`: Cambios de dirección, juego de pies, evasión y coordinación.
+* `Resistencia`: Capacidad aeróbica/anaeróbica, pasadas e intermitentes.
+* `Movilidad`: Flexibilidad y amplitud articular.
+
+B. Zona Anatómica (Foco Muscular)
+* `Tren Superior`: Pectorales, dorsales, hombros, brazos.
+* `Tren Inferior`: Cuádriceps, isquiotibiales, glúteos, gemelos.
+* `Core`: Zona media, abdominales, lumbares, estabilidad (crítico para Scrum/Tacle).
+* `Full Body`: Movimientos compuestos globales (ej: Peso Muerto, Cargadas).
+
+C. Especificidad de Rugby (Contexto de Juego)
+* `Prevención`: Ejercicios de *Prehab* para fortalecimiento de zonas propensas a lesiones (cuello, hombros, rodillas).
+* `Destrezas`: Trabajo técnico individual que puede realizarse de forma remota y aislada (ej: manejo de pelota, lanzamientos de hooker, juego de patada).
+* `Contacto`: Preparación física de posturas específicas para las fases de obtención o disputa (postura de tacle, empuje, estabilidad en el piso).
+
+7.3. Requerimientos de UX/UI para Clases
+* **Filtros Multi-Select (Vista Entrenador):** La biblioteca de ejercicios debe permitir filtrar cruzando el Tipo con múltiples Clases mediante componentes de tipo *Badges* o *Checkboxes* (ej: Buscar un `Test` que sea de `Resistencia` y `Full Body`).
+* **Formulario de Creación (Vista Administrador):** El panel de carga de nuevas plantillas debe incluir un selector múltiple amigable para tildar las clases correspondientes de forma ágil antes de guardar el ejercicio en el catálogo.

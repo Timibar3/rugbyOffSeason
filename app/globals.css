@@ -4,7 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── Design System: Titan Performance (Stitch IA) ─────────────────────────── */
+/* Tokens adicionales del DS que no cubre shadcn, mapeados como utilidades Tailwind */
 @theme inline {
+  /* shadcn core tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -46,85 +49,154 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── Titan Performance: Surface tokens ───────────────── */
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-bright: #393939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #201f1f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-surface-variant: #353534;
+  --color-surface-tint: #abd600;
+
+  /* ── Titan Performance: On-Surface tokens ───────────── */
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #c4c9ac;
+  --color-on-background: #e5e2e1;
+
+  /* ── Titan Performance: Outline tokens ──────────────── */
+  --color-outline: #8e9379;
+  --color-outline-variant: #444933;
+
+  /* ── Titan Performance: Neon Green (acción principal) ── */
+  --color-primary-container: #c3f400;
+  --color-on-primary-container: #556d00;
+  --color-on-primary: #283500;
+  --color-on-primary-fixed: #161e00;
+  --color-on-primary-fixed-variant: #3c4d00;
+  --color-primary-fixed: #c3f400;
+  --color-primary-fixed-dim: #abd600;
+  --color-inverse-primary: #506600;
+
+  /* ── Titan Performance: Secondary (Slate) ───────────── */
+  --color-secondary-container: #3c4a5e;
+  --color-on-secondary: #233144;
+  --color-on-secondary-container: #abb9d2;
+  --color-secondary-fixed: #d5e3fd;
+  --color-secondary-fixed-dim: #b9c7e0;
+  --color-on-secondary-fixed: #0d1c2f;
+  --color-on-secondary-fixed-variant: #3a485c;
+
+  /* ── Titan Performance: Tertiary ────────────────────── */
+  --color-tertiary: #ffffff;
+  --color-on-tertiary: #303030;
+  --color-tertiary-container: #e5e2e1;
+  --color-on-tertiary-container: #656464;
+  --color-tertiary-fixed: #e5e2e1;
+  --color-tertiary-fixed-dim: #c8c6c5;
+  --color-on-tertiary-fixed: #1b1b1c;
+  --color-on-tertiary-fixed-variant: #474746;
+
+  /* ── Titan Performance: Error ───────────────────────── */
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* ── Titan Performance: Inverse ─────────────────────── */
+  --color-inverse-surface: #e5e2e1;
+  --color-inverse-on-surface: #313030;
+
+  /* ── Titan Performance: Spacing ─────────────────────── */
+  --spacing-base: 8px;
+  --spacing-gutter: 16px;
+  --spacing-margin-mobile: 20px;
+  --spacing-card-padding: 24px;
+  --spacing-margin-desktop: 40px;
+
+  /* ── Titan Performance: Fonts ───────────────────────── */
+  --font-inter: var(--font-inter);
+  --font-jetbrains: var(--font-jetbrains);
 }
 
+/* ─── Dark mode: mapeo de shadcn tokens a paleta Titan ── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #131313;
+  --foreground: #e5e2e1;
+  --card: #201f1f;
+  --card-foreground: #e5e2e1;
+  --popover: #1c1b1b;
+  --popover-foreground: #e5e2e1;
+  --primary: #ffffff;
+  --primary-foreground: #161e00;
+  --secondary: #b9c7e0;
+  --secondary-foreground: #233144;
+  --muted: #2a2a2a;
+  --muted-foreground: #c4c9ac;
+  --accent: #2a2a2a;
+  --accent-foreground: #e5e2e1;
+  --destructive: #ffb4ab;
+  --border: #444933;
+  --input: #1c1b1b;
+  --ring: #c3f400;
+  --chart-1: #c3f400;
+  --chart-2: #b9c7e0;
+  --chart-3: #8e9379;
+  --chart-4: #444933;
+  --chart-5: #353534;
+  --radius: 0.25rem;
+  --sidebar: #1c1b1b;
+  --sidebar-foreground: #e5e2e1;
+  --sidebar-primary: #c3f400;
+  --sidebar-primary-foreground: #161e00;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #e5e2e1;
+  --sidebar-border: #444933;
+  --sidebar-ring: #c3f400;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+/* La app es 100% dark mode — no hay variante light */
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-surface text-on-surface;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ─── Utilidades globales del DS ─────────────────────────────────────────────── */
+@layer utilities {
+  .neon-glow {
+    box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+  }
+  .neon-glow-sm {
+    box-shadow: 0 0 10px rgba(195, 244, 0, 0.5);
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .font-jetbrains {
+    font-family: var(--font-jetbrains), 'JetBrains Mono', monospace;
+  }
+  .font-inter {
+    font-family: var(--font-inter), 'Inter', sans-serif;
+  }
+  .status-toggle-active {
+    background-color: #c3f400;
+    color: #161e00;
+    box-shadow: 0 0 10px rgba(195, 244, 0, 0.5);
   }
 }

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RUGBY PERFORMANCE | Informes Globales</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#0d1c2f",
+                        "on-primary-container": "#556d00",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-highest": "#353534",
+                        "primary-container": "#c3f400",
+                        "on-surface-variant": "#c4c9ac",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "error-container": "#93000a",
+                        "surface-container": "#201f1f",
+                        "background": "#131313",
+                        "on-error": "#690005",
+                        "primary-fixed": "#c3f400",
+                        "on-surface": "#e5e2e1",
+                        "primary-fixed-dim": "#abd600",
+                        "outline-variant": "#444933",
+                        "tertiary-container": "#e5e2e1",
+                        "secondary-container": "#3c4a5e",
+                        "secondary": "#b9c7e0",
+                        "outline": "#8e9379",
+                        "on-tertiary-container": "#656464",
+                        "surface-variant": "#353534",
+                        "on-secondary-container": "#abb9d2",
+                        "tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "surface-tint": "#abd600",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#131313",
+                        "on-tertiary": "#303030",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-secondary": "#233144",
+                        "on-primary": "#283500",
+                        "on-background": "#e5e2e1",
+                        "on-primary-fixed": "#161e00",
+                        "inverse-primary": "#506600",
+                        "surface": "#131313",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-fixed": "#e5e2e1",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed": "#1b1b1c",
+                        "primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "card-padding": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "data-display": ["20px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chart-bar {
+            transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #444933;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-background border-b border-outline-variant">
+<div class="font-headline-lg text-headline-lg-mobile font-black text-primary tracking-tighter">
+            RUGBY PERFORMANCE
+        </div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="hidden md:flex flex-col h-screen fixed left-0 top-0 py-8 bg-surface-container-low border-r border-outline-variant w-64 z-40 mt-16">
+<div class="px-6 mb-8">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant mb-1">Staff Dashboard</h2>
+<p class="font-body-md text-sm text-primary-container font-bold uppercase tracking-widest">Elite Performance Unit</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                Planificador
+            </a>
+<a class="flex items-center gap-3 px-6 py-4 text-primary border-r-2 border-primary bg-surface-container-high font-bold font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Informes
+            </a>
+<a class="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+                Jugadores
+            </a>
+</nav>
+<div class="px-6 mb-6">
+<button class="w-full bg-primary-container text-on-primary-fixed py-3 font-bold font-label-caps text-label-caps rounded transition-opacity active:opacity-80">
+                NUEVA SESIÓN
+            </button>
+</div>
+<footer class="mt-auto border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:text-on-surface font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Configuración
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-error hover:opacity-80 font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Cerrar Sesión
+            </a>
+</footer>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 mt-16 p-6 md:p-10">
+<!-- Header & Top Controls -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary uppercase">Informes Globales</h1>
+<p class="text-on-surface-variant mt-1">Análisis avanzado de rendimiento post-temporada.</p>
+</div>
+<div class="flex gap-3">
+<div class="bg-surface-container border border-outline-variant px-4 py-2 flex items-center gap-2 rounded-lg">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-caps text-xs">OCT 2023 - ENE 2024</span>
+</div>
+<button class="bg-white/5 border border-outline-variant px-4 py-2 rounded-lg font-label-caps text-xs flex items-center gap-2 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                    EXPORTAR
+                </button>
+</div>
+</div>
+<!-- Layout Wrapper -->
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Left Sidebar Filter -->
+<aside class="w-full lg:w-72 flex-shrink-0">
+<div class="bg-surface-container border border-outline-variant p-card-padding h-fit sticky top-24">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-widest">Filtros de Plantel</h3>
+<ul class="space-y-4">
+<li>
+<button class="w-full text-left group flex items-center justify-between text-primary font-bold">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    Plantel Completo
+                                </span>
+<span class="bg-primary-container/10 text-primary-container text-[10px] px-2 py-0.5 rounded">42</span>
+</button>
+</li>
+<li class="pl-4 border-l border-outline-variant space-y-4">
+<div>
+<button class="w-full text-left flex items-center justify-between text-on-surface-variant hover:text-primary transition-colors">
+<span class="flex items-center gap-2 font-medium">Forwards</span>
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</button>
+<ul class="pl-6 mt-3 space-y-2">
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Primera Línea</li>
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Segunda Línea</li>
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Tercera Línea</li>
+</ul>
+</div>
+<div>
+<button class="w-full text-left flex items-center justify-between text-on-surface-variant hover:text-primary transition-colors">
+<span class="flex items-center gap-2 font-medium">Backs</span>
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</button>
+<ul class="pl-6 mt-3 space-y-2">
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Medios</li>
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Centros</li>
+<li class="text-sm text-on-surface-variant/70 hover:text-primary-container cursor-pointer transition-colors">Tres Cuartos</li>
+</ul>
+</div>
+</li>
+</ul>
+<div class="mt-8 pt-8 border-t border-outline-variant">
+<h4 class="font-label-caps text-[10px] text-on-surface-variant mb-4 uppercase">Métricas de Enfoque</h4>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="w-4 h-4 border border-outline rounded-sm bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-black font-bold" data-icon="check">check</span>
+</div>
+<span class="text-xs text-primary font-medium">Fuerza Máxima (1RM)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="w-4 h-4 border border-outline rounded-sm"></div>
+<span class="text-xs text-on-surface-variant group-hover:text-primary transition-colors">Carga Aeróbica (VO2)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="w-4 h-4 border border-outline rounded-sm"></div>
+<span class="text-xs text-on-surface-variant group-hover:text-primary transition-colors">Potencia Reactiva</span>
+</label>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Panel -->
+<div class="flex-1 space-y-gutter">
+<!-- Metrics Bar (Hero Stats) -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-high p-card-padding border-l-4 border-primary-container">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">PROMEDIO 1RM SQUAT</p>
+<p class="font-data-display text-headline-lg-mobile text-primary">164.2 <span class="text-sm font-normal text-on-surface-variant">kg</span></p>
+<div class="flex items-center gap-1 text-[10px] text-primary-container mt-2">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+<span>+4.2% vs MES ANTERIOR</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-card-padding border-l-4 border-outline-variant">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">CUMPLIMIENTO GRUPAL</p>
+<p class="font-data-display text-headline-lg-mobile text-primary">92.8 <span class="text-sm font-normal text-on-surface-variant">%</span></p>
+<div class="flex items-center gap-1 text-[10px] text-on-surface-variant mt-2">
+<span class="material-symbols-outlined text-xs" data-icon="horizontal_rule">horizontal_rule</span>
+<span>ESTABLE</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-card-padding border-l-4 border-primary-container">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">TOP VELOCIDAD PROMEDIO</p>
+<p class="font-data-display text-headline-lg-mobile text-primary">32.1 <span class="text-sm font-normal text-on-surface-variant">km/h</span></p>
+<div class="flex items-center gap-1 text-[10px] text-primary-container mt-2">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+<span>NUEVO RÉCORD</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-card-padding border-l-4 border-error">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">ATLETAS EN RIESGO</p>
+<p class="font-data-display text-headline-lg-mobile text-error">3 <span class="text-sm font-normal text-on-surface-variant">PTS</span></p>
+<div class="flex items-center gap-1 text-[10px] text-error mt-2">
+<span class="material-symbols-outlined text-xs" data-icon="warning">warning</span>
+<span>ALTA CARGA ACUMULADA</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Ranking de Tests Table (8 columns) -->
+<section class="lg:col-span-7 bg-surface-container border border-outline-variant overflow-hidden">
+<div class="p-card-padding border-b border-outline-variant flex justify-between items-center bg-white/5">
+<h3 class="font-label-caps text-label-caps text-primary">RANKING DE TESTS: FUERZA MÁXIMA</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="filter_list">filter_list</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-low">
+<th class="p-4 font-label-caps text-[10px] text-on-surface-variant">PLAYER</th>
+<th class="p-4 font-label-caps text-[10px] text-on-surface-variant">POSICIÓN</th>
+<th class="p-4 font-label-caps text-[10px] text-on-surface-variant">TEST (KG)</th>
+<th class="p-4 font-label-caps text-[10px] text-on-surface-variant">PCT %</th>
+<th class="p-4 font-label-caps text-[10px] text-on-surface-variant">ESTADO</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<tr class="hover:bg-primary-container/5 transition-colors group">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="Close up portrait of a focused professional rugby player with a rugged appearance and intense gaze, illuminated by sharp cinematic side lighting in a dark studio setting. The athlete's skin shows texture and determination, reflecting a high-performance athletic environment with a deep dark-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG47GnLLzQ1X80rwd-IGS9Z1mByOxbihZK0cBG8uRNPPrAXoOXfVaQB1pcbQg-Rplzf7Cm7T3mNNURN5hZ4xYZTP_ktu9niWnqZsGCuOu-AVHc5EqtomRCmt5DIhNDhg1xf_mAvjgzxgWhJ0K_12EQw6Ej7rWloLGNwsiccLOFT0zNsh9rvM2MabYLFc-rlJ613dyBr5gY5qb1O45p3mZfVtNYYm-4UfbYwo91XvvJTooJnLZN68Vkt5al22ThgJ7Aejdlgzf_Cm8"/>
+</div>
+<span class="font-bold text-sm">MARCOS LEDESMA</span>
+</div>
+</td>
+<td class="p-4 text-xs text-on-surface-variant">Prop (1)</td>
+<td class="p-4 font-data-display text-primary">220.0</td>
+<td class="p-4">
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full">
+<div class="bg-primary-container h-full rounded-full" style="width: 98%;"></div>
+</div>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-1.5 text-primary-container">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-[10px] font-bold">PEAK</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary-container/5 transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="A profile shot of a tall second-row rugby player during a training break, sweat glistening on their face under stadium lights. The atmosphere is professional and intense, using a dark-mode visual style with strong contrast and deep athletic tones, highlighting peak physical condition and concentration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAP4nEQlfgt83D2EheFAO0Uh-j7IZ4Gk1OydtsZ6Ucj1eKoUOWRQgOCdhSip6n-g-J0aM8JnkjRLYlxEP858ipdGlDjwqFPxaM8nKmPk1oQAKhFWVdJd_gYp49o9OolqBKbTxuPomnVJRr7nGX0KNcitDCRbQCPd1K0UXMyqugvXkKgBHihwzIoSeloAuAmd3YvxQFsLt8zns2oUIuvSJHUMqp0a75lrVSFAp-zlxzd7Is2h0nZ5DP-nvDv461WIh9ix4UwaKJGbyA"/>
+</div>
+<span class="font-bold text-sm">TOMAS ORTIZ</span>
+</div>
+</td>
+<td class="p-4 text-xs text-on-surface-variant">Lock (5)</td>
+<td class="p-4 font-data-display text-primary">195.0</td>
+<td class="p-4">
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full">
+<div class="bg-primary-container h-full rounded-full" style="width: 82%;"></div>
+</div>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-[10px] font-bold">OPTIMAL</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary-container/5 transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="Detailed macro shot of an athlete's hands gripping a heavy barbell in a dark, high-performance training facility. The lighting is low-key with neon green accents reflecting off the metallic surfaces. The mood is gritty, professional, and hyper-focused on strength and recovery, following a modern dashboard aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDA_dV1tZWFoe2HWw46Da6Bqj44B9ng1IJlttLiDq-E_MC8cyauep4AP1QBftSMTjsP0TaEPVlx8lBttMup2b_edWPf2PbKvv_DobqtgONwXRAyX4_mUTXVGTh53hMdeZcW5AsPRgy9e66aOUt0IbxKN-fbL8Bta7fUFsjypU1xYXA5PPw3filKew1V3OnJVsvYu-N6dX9eSfrSWv0gz9CaiNjvd4C2kU4uY2A0sTmOLsyywx-IObxPr7Gu2QCwhU3ozj1-Hd9QH2o"/>
+</div>
+<span class="font-bold text-sm">JULIAN RIOS</span>
+</div>
+</td>
+<td class="p-4 text-xs text-on-surface-variant">Hooker (2)</td>
+<td class="p-4 font-data-display text-primary">187.5</td>
+<td class="p-4">
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full">
+<div class="bg-primary-container h-full rounded-full" style="width: 78%;"></div>
+</div>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-[10px] font-bold">OPTIMAL</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary-container/5 transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="A cinematic capture of a rugby player's back muscles during a high-intensity pull-up, showing extreme definition. The gym is dark with subtle slate-colored highlights. The image is part of a professional performance dashboard, emphasizing discipline, elite athleticism, and the rugged modernism of the brand's visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrZ_H2524bM19-0kUrpxYilAOe5-Gk_vt6HJNuCQdlHt4lBzVCOE51AdQTNv71VARX3ar1G2K3y3K4zXjyPVkNGxOc17b3Y_yN9wpBjmWGF6IJAU-J2CVFHde3ovTleKL5o7vgsmnreYXIfXW5KOVrlTo74buzLas8GUZ7vWoC2CFg6szc6G2wrDJpFnrjfzhf9lsNY-sSWrE3842P-2IPdekW5BGsx0u1C3W9K8Wl5usDt4XXNGG8Pj-r34XhMjiyUsqeE0h5JWE"/>
+</div>
+<span class="font-bold text-sm">SANTIAGO PAZ</span>
+</div>
+</td>
+<td class="p-4 text-xs text-on-surface-variant">Flanker (7)</td>
+<td class="p-4 font-data-display text-primary">180.0</td>
+<td class="p-4">
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full">
+<div class="bg-primary-container h-full rounded-full" style="width: 75%;"></div>
+</div>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-[10px] font-bold">OPTIMAL</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Gráficos de Cumplimiento (5 columns) -->
+<section class="lg:col-span-5 bg-surface-container border border-outline-variant p-card-padding">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-label-caps text-label-caps text-primary">CUMPLIMIENTO POR CLUSTER</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-primary-container"></span>
+<span class="text-[10px] text-on-surface-variant uppercase">Ejecutado</span>
+</div>
+</div>
+<!-- Bar Chart Grouped -->
+<div class="space-y-8">
+<!-- Cluster 1 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-primary">PRIMERA LÍNEA</span>
+<span class="font-data-display text-sm text-primary-container">96%</span>
+</div>
+<div class="relative h-12 w-full bg-surface-container-highest border-l-2 border-outline-variant overflow-hidden">
+<div class="chart-bar absolute top-0 left-0 h-full bg-primary-container" style="width: 96%; opacity: 0.85;"></div>
+<div class="absolute inset-0 flex items-center px-3 pointer-events-none">
+<span class="text-[10px] text-black font-black">EXCELENCIA OPERATIVA</span>
+</div>
+</div>
+</div>
+<!-- Cluster 2 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-primary">MEDIOS</span>
+<span class="font-data-display text-sm text-primary-container">88%</span>
+</div>
+<div class="relative h-12 w-full bg-surface-container-highest border-l-2 border-outline-variant overflow-hidden">
+<div class="chart-bar absolute top-0 left-0 h-full bg-primary-container" style="width: 88%; opacity: 0.85;"></div>
+<div class="absolute inset-0 flex items-center px-3 pointer-events-none">
+<span class="text-[10px] text-black font-black">SOBRE EL OBJETIVO</span>
+</div>
+</div>
+</div>
+<!-- Cluster 3 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-primary">TRES CUARTOS</span>
+<span class="font-data-display text-sm text-on-secondary-container">74%</span>
+</div>
+<div class="relative h-12 w-full bg-surface-container-highest border-l-2 border-outline-variant overflow-hidden">
+<div class="chart-bar absolute top-0 left-0 h-full bg-secondary-container" style="width: 74%;"></div>
+<div class="absolute inset-0 flex items-center px-3 pointer-events-none">
+<span class="text-[10px] text-on-secondary-container font-black">CUMPLIMIENTO PARCIAL</span>
+</div>
+</div>
+</div>
+<!-- Cluster 4 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-primary">SEGUNDA LÍNEA</span>
+<span class="font-data-display text-sm text-primary-container">92%</span>
+</div>
+<div class="relative h-12 w-full bg-surface-container-highest border-l-2 border-outline-variant overflow-hidden">
+<div class="chart-bar absolute top-0 left-0 h-full bg-primary-container" style="width: 92%; opacity: 0.85;"></div>
+<div class="absolute inset-0 flex items-center px-3 pointer-events-none">
+<span class="text-[10px] text-black font-black">ALTA INTENSIDAD</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-10 p-4 bg-primary-container/5 border border-primary-container/20 rounded">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary-container" data-icon="lightbulb">lightbulb</span>
+<div>
+<p class="text-xs font-bold text-primary uppercase">Staff Insight</p>
+<p class="text-[11px] text-on-surface-variant leading-relaxed mt-1">
+                                        El cluster "Tres Cuartos" muestra fatiga acumulada tras bloque de velocidad. Se recomienda reducción de carga (Deload) del 15% para el próximo microciclo.
+                                    </p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Secondary Analysis Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Distribution Chart Placeholder -->
+<div class="bg-surface-container border border-outline-variant p-card-padding">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase">Distribución de Intensidad (Global)</h3>
+<div class="h-48 flex items-end justify-between gap-2 px-4 border-b border-outline-variant">
+<div class="w-full bg-outline-variant/20 rounded-t-sm h-[20%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">Z1</div>
+</div>
+<div class="w-full bg-outline-variant/20 rounded-t-sm h-[45%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">Z2</div>
+</div>
+<div class="w-full bg-primary-container/40 rounded-t-sm h-[85%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary-container opacity-0 group-hover:opacity-100 transition-opacity">Z3</div>
+</div>
+<div class="w-full bg-primary-container rounded-t-sm h-[100%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary-container opacity-0 group-hover:opacity-100 transition-opacity">MAX</div>
+</div>
+<div class="w-full bg-primary-container/60 rounded-t-sm h-[60%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary-container opacity-0 group-hover:opacity-100 transition-opacity">Z4</div>
+</div>
+</div>
+<div class="mt-4 flex justify-between text-[10px] font-label-caps text-on-surface-variant">
+<span>RECUPERACIÓN</span>
+<span>AERÓBICO</span>
+<span>MIXTO</span>
+<span>POTENCIA</span>
+<span>V-MAX</span>
+</div>
+</div>
+<!-- Readiness Index -->
+<div class="bg-surface-container border border-outline-variant p-card-padding flex flex-col justify-center items-center text-center">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-4">ÍNDICE DE PREPARACIÓN (READYNESS)</p>
+<div class="relative w-40 h-40">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container-highest" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-container" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="66" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-data-display text-4xl text-primary">85</span>
+<span class="text-[10px] font-bold text-on-surface-variant">OPTIMAL</span>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant mt-6 max-w-xs">
+                            El plantel muestra un índice de recuperación alto para el próximo encuentro. 
+                            <span class="text-primary-container font-bold">Listos para contacto de alta intensidad.</span>
+</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 md:hidden bg-surface-container border-t border-outline-variant rounded-t-xl shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="event_note">event_note</span>
+<span class="font-label-caps text-[10px]">Agenda</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-caps text-[10px]">Tests</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span class="font-label-caps text-[10px]">Progreso</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions and simple chart animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach(bar => {
+                const targetWidth = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = targetWidth;
+                }, 300);
+            });
+
+            // Tab Hover Effect Simulation
+            const navItems = document.querySelectorAll('nav a');
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    if(!item.classList.contains('text-primary')) {
+                        item.classList.add('bg-surface-container-highest');
+                    }
+                });
+                item.addEventListener('mouseleave', () => {
+                    if(!item.classList.contains('text-primary')) {
+                        item.classList.remove('bg-surface-container-highest');
+                    }
+                });
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#0d1c2f",
+                        "on-primary-container": "#556d00",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-highest": "#353534",
+                        "primary-container": "#c3f400",
+                        "on-surface-variant": "#c4c9ac",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "error-container": "#93000a",
+                        "surface-container": "#201f1f",
+                        "background": "#131313",
+                        "on-error": "#690005",
+                        "primary-fixed": "#c3f400",
+                        "on-surface": "#e5e2e1",
+                        "primary-fixed-dim": "#abd600",
+                        "outline-variant": "#444933",
+                        "tertiary-container": "#e5e2e1",
+                        "secondary-container": "#3c4a5e",
+                        "secondary": "#b9c7e0",
+                        "outline": "#8e9379",
+                        "on-tertiary-container": "#656464",
+                        "surface-variant": "#353534",
+                        "on-secondary-container": "#abb9d2",
+                        "tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "surface-tint": "#abd600",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#131313",
+                        "on-tertiary": "#303030",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-secondary": "#233144",
+                        "on-primary": "#283500",
+                        "on-background": "#e5e2e1",
+                        "on-primary-fixed": "#161e00",
+                        "inverse-primary": "#506600",
+                        "surface": "#131313",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-fixed": "#e5e2e1",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed": "#1b1b1c",
+                        "primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "card-padding": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "data-display": ["20px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #121212;
+            color: #e5e2e1;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+        }
+        .status-toggle-active {
+            background-color: #c3f400;
+            color: #161e00;
+            box-shadow: 0 0 10px rgba(195, 244, 0, 0.5);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-background dark:bg-background border-b border-outline-variant">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-black text-primary dark:text-primary tracking-tighter">RUGBY PERFORMANCE</h1>
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile">
+<!-- Horizontal Swipeable Calendar -->
+<section class="mb-8 overflow-x-auto hide-scrollbar flex gap-3 pb-2">
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low opacity-60">
+<span class="font-label-caps text-label-caps mb-1">LUN</span>
+<span class="font-data-display text-data-display">12</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low opacity-60">
+<span class="font-label-caps text-label-caps mb-1">MAR</span>
+<span class="font-data-display text-data-display">13</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[64px] py-4 rounded-xl border-2 border-primary-container bg-surface-container-high neon-glow">
+<span class="font-label-caps text-label-caps mb-1 text-primary-container">MIE</span>
+<span class="font-data-display text-data-display text-on-background">14</span>
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container mt-1"></div>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low">
+<span class="font-label-caps text-label-caps mb-1">JUE</span>
+<span class="font-data-display text-data-display">15</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low">
+<span class="font-label-caps text-label-caps mb-1">VIE</span>
+<span class="font-data-display text-data-display">16</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low">
+<span class="font-label-caps text-label-caps mb-1">SAB</span>
+<span class="font-data-display text-data-display">17</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[56px] py-3 rounded-xl border border-outline-variant bg-surface-container-low">
+<span class="font-label-caps text-label-caps mb-1">DOM</span>
+<span class="font-data-display text-data-display">18</span>
+</div>
+</section>
+<!-- Entrenamiento Card -->
+<section class="mb-6">
+<div class="bg-surface-container p-card-padding rounded-xl border border-outline-variant overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="font-label-caps text-label-caps text-primary-container">SESIÓN DE FUERZA</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1">Empuje Dinámico</h2>
+</div>
+<span class="material-symbols-outlined text-primary-container">fitness_center</span>
+</div>
+<div class="relative w-full aspect-video bg-surface-container-highest rounded-lg mb-4 overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" data-alt="A professional rugby athlete performing an explosive deadlift in a high-performance dark-toned training facility. The lighting is cinematic, focusing on the athlete's muscular tension and the metallic weights. Neon green accents highlight the precision of the form, consistent with an elite sports dashboard aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfMT_4QB1zyhRFfatuCWWdTJPf-IGf9kWfAE1GySPHZ75aSkq9RPwuGqU1LWfgG7UAOgSYXCSdVN7IqZCr7WG4uU1Eb6REMhpDXxdqQkSTvaT5sIhTIPhLqRHQ_MjOo6sGgLcNlW8u7ZuijT-JJ3MoP0dFLCrUUU3KWULGGUFhE1jUMFFz0w6BqYlyeN6shCKeYwS6mG4E0a1WmylJDOlxOJqyM5nJJyuRaiBhO2Xzh0sKrnAUAmfaqdk5vWcRfU49EYwDjk0R1H0"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-16 h-16 rounded-full bg-primary-container/20 border-2 border-primary-container flex items-center justify-center backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="mb-6">
+<button class="flex items-center gap-2 font-label-caps text-label-caps text-on-surface-variant hover:text-primary mb-2 transition-colors" id="toggleInstructions">
+<span>INSTRUCCIONES DEL COACH</span>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<div class="text-on-surface-variant text-sm leading-relaxed border-l-2 border-outline-variant pl-4 py-1" id="instructionsText">
+                        Priorizar la fase excéntrica lenta (3 seg). Mantener el core bloqueado en todo momento. 4 series de 8 repeticiones al 75% RM. Enfoque total en la explosividad vertical.
+                    </div>
+</div>
+<button class="w-full py-4 rounded-xl font-label-caps text-label-caps font-bold transition-all duration-300 bg-surface-container-highest text-on-surface-variant border border-outline-variant" id="workoutToggle" onclick="toggleWorkoutStatus()">
+                    NO REALIZADO
+                </button>
+</div>
+</section>
+<!-- Test Card -->
+<section class="mb-6">
+<div class="bg-surface-container p-card-padding rounded-xl border border-outline-variant">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="font-label-caps text-label-caps text-secondary">EVALUACIÓN DIARIA</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1">Test RPE &amp; Carga</h2>
+</div>
+<span class="material-symbols-outlined text-secondary">analytics</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-[10px] text-on-surface-variant">PESO SESIÓN (KG)</label>
+<input class="bg-surface-container-low border border-outline-variant rounded-lg p-3 text-center font-data-display text-headline-lg-mobile focus:border-primary-container focus:ring-0 transition-colors" placeholder="00" type="number"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-[10px] text-on-surface-variant">TIEMPO (MIN:SEG)</label>
+<input class="bg-surface-container-low border border-outline-variant rounded-lg p-3 text-center font-data-display text-headline-lg-mobile focus:border-primary-container focus:ring-0 transition-colors" placeholder="00:00" type="text"/>
+</div>
+</div>
+<button class="w-full py-4 rounded-xl bg-primary-container text-on-primary-fixed font-label-caps text-label-caps font-black tracking-widest hover:opacity-90 active:scale-[0.98] transition-all">
+                    ENVIAR RESULTADO
+                </button>
+</div>
+</section>
+<!-- Seguimiento Section -->
+<section class="mb-6">
+<div class="bg-surface-container p-card-padding rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-label-caps text-label-caps tracking-widest">PROGRESO SEMANAL</h2>
+<div class="flex gap-4">
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container"></div>
+<span class="text-[10px] font-label-caps text-on-surface-variant">YO</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full border border-dashed border-outline"></div>
+<span class="text-[10px] font-label-caps text-on-surface-variant">TEAM</span>
+</div>
+</div>
+</div>
+<!-- Custom SVG Line Chart -->
+<div class="h-48 w-full relative">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 400 200">
+<!-- Grid Lines -->
+<line stroke="#334155" stroke-opacity="0.2" x1="0" x2="400" y1="40" y2="40"></line>
+<line stroke="#334155" stroke-opacity="0.2" x1="0" x2="400" y1="80" y2="80"></line>
+<line stroke="#334155" stroke-opacity="0.2" x1="0" x2="400" y1="120" y2="120"></line>
+<line stroke="#334155" stroke-opacity="0.2" x1="0" x2="400" y1="160" y2="160"></line>
+<!-- Team Average Path (Dotted) -->
+<path d="M0 140 Q100 130, 200 150 T400 120" fill="none" stroke="#8e9379" stroke-dasharray="4 4" stroke-width="2"></path>
+<!-- Player Path (Neon Green) -->
+<path class="drop-shadow-[0_0_5px_rgba(195,244,0,0.4)]" d="M0 160 Q100 140, 200 100 T400 60" fill="none" stroke="#c3f400" stroke-linecap="round" stroke-width="3"></path>
+<!-- Points -->
+<circle cx="200" cy="100" fill="#c3f400" r="4"></circle>
+<circle cx="400" cy="60" fill="#c3f400" r="4"></circle>
+</svg>
+<!-- Labels -->
+<div class="absolute bottom-[-20px] w-full flex justify-between font-label-caps text-[9px] text-on-surface-variant">
+<span>LUN</span>
+<span>MAR</span>
+<span>MIE</span>
+<span>JUE</span>
+<span>VIE</span>
+</div>
+</div>
+<div class="mt-8 flex justify-between items-center px-2 py-3 bg-surface-container-low rounded-lg border border-outline-variant">
+<div>
+<p class="text-[10px] font-label-caps text-on-surface-variant">PEAK LOAD</p>
+<p class="font-data-display text-primary-container">840 AU</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label-caps text-on-surface-variant">RECOVERY</p>
+<p class="font-data-display text-primary">OPTIMAL</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only Layout) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 md:hidden bg-surface-container dark:bg-surface-container border-t border-outline-variant shadow-lg rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event_note</span>
+<span class="font-label-caps text-label-caps mt-0.5">Agenda</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-label-caps mt-0.5">Tests</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-caps text-label-caps mt-0.5">Progreso</span>
+</a>
+</nav>
+<script>
+        function toggleWorkoutStatus() {
+            const btn = document.getElementById('workoutToggle');
+            const isActive = btn.classList.contains('status-toggle-active');
+            
+            if (isActive) {
+                btn.classList.remove('status-toggle-active');
+                btn.innerText = 'NO REALIZADO';
+                btn.classList.add('bg-surface-container-highest', 'text-on-surface-variant');
+            } else {
+                btn.classList.add('status-toggle-active');
+                btn.innerText = 'REALIZADO';
+                btn.classList.remove('bg-surface-container-highest', 'text-on-surface-variant');
+            }
+        }
+
+        const toggleInstructions = document.getElementById('toggleInstructions');
+        const instructionsText = document.getElementById('instructionsText');
+        
+        toggleInstructions.addEventListener('click', () => {
+            const isHidden = instructionsText.classList.contains('hidden');
+            if (isHidden) {
+                instructionsText.classList.remove('hidden');
+                toggleInstructions.querySelector('span:last-child').innerText = 'keyboard_arrow_down';
+            } else {
+                instructionsText.classList.add('hidden');
+                toggleInstructions.querySelector('span:last-child').innerText = 'keyboard_arrow_right';
+            }
+        });
+
+        // Initialize state
+        instructionsText.classList.add('hidden');
+        toggleInstructions.querySelector('span:last-child').innerText = 'keyboard_arrow_right';
+    </script>
+</body></html>
