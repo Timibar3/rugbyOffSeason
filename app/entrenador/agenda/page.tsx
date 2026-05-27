@@ -2,16 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Copy, X, Pencil, Check, ImagePlus, Lock } from "lucide-react";
-import { useMockAuth } from "@/context/MockAuthContext";
+import { useAppContext } from "@/context/AppContext";
 import { getItemsUnicosPorDia } from "@/lib/dedup";
-import {
-  CLASES_DISPONIBLES,
-  DIAS_SEMANA,
-  FECHA_HOY,
-  Clase,
-  Grupo,
-} from "@/mocks/rugbyData";
+import { CLASES_DISPONIBLES, Clase, Grupo } from "@/mocks/rugbyData";
 import type { TipoItem } from "@/mocks/rugbyData";
+import { getSemanaActual, getFechaHoy } from "@/lib/semana";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -69,7 +64,7 @@ function ComentarioEditor({
   comentarioInicial: string;
   onClose: () => void;
 }) {
-  const { editarComentarioAgenda } = useMockAuth();
+  const { editarComentarioAgenda } = useAppContext();
   const [valor, setValor] = useState(comentarioInicial);
 
   function handleGuardar() {
@@ -111,6 +106,9 @@ function ComentarioEditor({
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 
+const DIAS_SEMANA = getSemanaActual();
+const FECHA_HOY = getFechaHoy();
+
 export default function EntrenadorAgendaPage() {
   const {
     usuarioActivo,
@@ -123,7 +121,7 @@ export default function EntrenadorAgendaPage() {
     agregarItemAgenda,
     agregarEjercicioPersonalizado,
     eliminarEjercicioPersonalizado,
-  } = useMockAuth();
+  } = useAppContext();
 
   // ── Estado del formulario ─────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
@@ -229,12 +227,10 @@ export default function EntrenadorAgendaPage() {
     resetForm();
   }
 
-  function handleGuardarEnCatalogo() {
+  async function handleGuardarEnCatalogo() {
     if (!nuevoNombre.trim()) return;
-    const newId = `custom_ej_${Date.now()}`;
     const nombre = nuevoNombre.trim();
-    agregarEjercicioPersonalizado({
-      id: newId,
+    const newId = await agregarEjercicioPersonalizado({
       nombre,
       tipo: nuevoTipo,
       descripcion: nuevoDesc.trim(),
@@ -244,8 +240,7 @@ export default function EntrenadorAgendaPage() {
       imagenes: nuevoImagenes,
       esGlobal: false,
     });
-    // Mostrar flash de éxito, resetear campos para el siguiente ejercicio
-    setNuevoCreado({ id: newId, nombre });
+    if (newId) setNuevoCreado({ id: newId, nombre });
     setNuevoNombre("");
     setNuevoTipo("ejercicio");
     setNuevoDesc("");

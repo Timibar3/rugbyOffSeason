@@ -3,7 +3,20 @@
     "allow": [
       "Bash(npx shadcn@latest add card input table select badge --yes)",
       "Bash(npx tsc *)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(dir \"c:\\\\Users\\\\gloco\\\\Desktop\\\\CodingLocal\\\\rugbyoffseason\\\\supabase\" /s /b)",
+      "Bash(cd \"c:\\\\Users\\\\gloco\\\\Desktop\\\\CodingLocal\\\\rugbyoffseason\" && mkdir -p supabase/migrations)",
+      "Bash(npm install *)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\gloco\\\\Desktop\\\\CodingLocal\\\\rugbyoffseason\\\\middleware.ts\")",
+      "Bash(npx supabase *)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('@supabase/supabase-js:', p.dependencies['@supabase/supabase-js']\\); console.log\\('@supabase/ssr:', p.dependencies['@supabase/ssr']\\);\")",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\);\")",
+      "Bash(supabase --version)",
+      "Bash(node create-jugadores.mjs)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\gloco\\Desktop\\CodingLocal\\rugbyoffseason\\supabase"
     ]
   }
 }

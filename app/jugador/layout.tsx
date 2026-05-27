@@ -4,24 +4,28 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CalendarDays, TrendingUp, LogOut } from "lucide-react";
-import { useMockAuth } from "@/context/MockAuthContext";
+import { useAppContext } from "@/context/AppContext";
 
 export default function JugadorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { usuarioActivo, logout } = useMockAuth();
+  const { usuarioActivo, logout, loadingAuth } = useAppContext();
 
   useEffect(() => {
-    if (usuarioActivo !== null && usuarioActivo.tipo !== "jugador") {
-      router.replace("/");
+    if (!loadingAuth && usuarioActivo !== null && usuarioActivo.tipo !== "jugador") {
+      router.replace("/login");
     }
-  }, [usuarioActivo, router]);
+  }, [usuarioActivo, loadingAuth, router]);
 
+  if (loadingAuth) return (
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-6 h-6 rounded-full border-2 border-primary-container border-t-transparent animate-spin" />
+    </div>
+  );
   if (!usuarioActivo || usuarioActivo.tipo !== "jugador") return null;
 
   function handleLogout() {
     logout();
-    router.push("/");
   }
 
   const posDisplay =

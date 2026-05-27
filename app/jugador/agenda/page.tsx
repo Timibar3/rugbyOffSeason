@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { Dumbbell, FlaskConical, ChevronDown, ChevronRight, CheckCircle2, ChevronLeft } from "lucide-react";
-import { useMockAuth } from "@/context/MockAuthContext";
+import { useAppContext } from "@/context/AppContext";
 import { getItemsParaJugador } from "@/lib/dedup";
-import { DIAS_SEMANA, FECHA_HOY, getGruposDeJugador, IMAGEN_FALLBACK } from "@/mocks/rugbyData";
+import { getGruposDeJugador, IMAGEN_FALLBACK } from "@/mocks/rugbyData";
 import type { EjercicioTemplate } from "@/mocks/rugbyData";
+import { getSemanaActual, getFechaHoy } from "@/lib/semana";
 
 // ─── Sub-componente: Miniatura de imágenes con carrusel compacto ─────────────
 
@@ -59,7 +60,7 @@ function EntrenamientoCard({
   fecha: string;
   comentarioEntrenador?: string;
 }) {
-  const { isCompletado, toggleCompletado } = useMockAuth();
+  const { isCompletado, toggleCompletado } = useAppContext();
   const [expanded, setExpanded] = useState(false);
   const completado = isCompletado(ejercicio.id, fecha);
 
@@ -135,7 +136,7 @@ function TestCard({
   fecha: string;
   comentarioEntrenador?: string;
 }) {
-  const { guardarResultadoTest, getResultadoTest } = useMockAuth();
+  const { guardarResultadoTest, getResultadoTest } = useAppContext();
   const [inputValue, setInputValue] = useState("");
   const resultadoGuardado = getResultadoTest(ejercicio.id, fecha);
 
@@ -225,6 +226,9 @@ function TestCard({
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 
+const DIAS_SEMANA = getSemanaActual();
+const FECHA_HOY = getFechaHoy();
+
 export default function AgendaPage() {
   const {
     usuarioActivo,
@@ -232,7 +236,7 @@ export default function AgendaPage() {
     setFechaSeleccionada,
     agenda,
     todosLosEjercicios,
-  } = useMockAuth();
+  } = useAppContext();
 
   const items = useMemo(() => {
     if (!usuarioActivo || usuarioActivo.tipo !== "jugador") return [];

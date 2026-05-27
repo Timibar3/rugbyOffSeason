@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMockAuth } from "@/context/MockAuthContext";
-import { JUGADORES, DIAS_SEMANA, FECHA_HOY } from "@/mocks/rugbyData";
+import { useAppContext } from "@/context/AppContext";
 import type { EstadoCumplimiento } from "@/mocks/rugbyData";
+import { getSemanaActual, getFechaHoy } from "@/lib/semana";
 
 // ─── Célula de la grilla ──────────────────────────────────────────────────────
 
@@ -56,15 +56,18 @@ function CeldaCumplimiento({
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 
+const DIAS_SEMANA = getSemanaActual();
+const FECHA_HOY = getFechaHoy();
+
 export default function CumplimientoPage() {
-  const { cumplimiento } = useMockAuth();
+  const { cumplimiento, jugadoresEquipo } = useAppContext();
 
   // Días de la semana visibles (lunes a viernes)
   const diasVisibles = DIAS_SEMANA.slice(0, 5);
 
   // Calcular porcentaje de cumplimiento por jugador
   const stats = useMemo(() => {
-    return JUGADORES.map((j) => {
+    return jugadoresEquipo.map((j) => {
       const datos = cumplimiento[j.id] ?? {};
       const diasConDatos = diasVisibles.filter(
         (d) => datos[d.fecha] !== null && datos[d.fecha] !== undefined
@@ -76,7 +79,7 @@ export default function CumplimientoPage() {
           : 0;
       return { jugadorId: j.id, pct, completados: completados.length, total: diasConDatos.length };
     });
-  }, [cumplimiento, diasVisibles]);
+  }, [cumplimiento, jugadoresEquipo, diasVisibles]);
 
   // Totales del equipo
   const equipoPct = useMemo(() => {
@@ -152,113 +155,130 @@ export default function CumplimientoPage() {
         </div>
       </div>
 
-      {/* ── Grilla ────────────────────────────────────────────── */}
-      <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
-        {/* Header de la tabla */}
-        <div className="grid bg-surface-container-low border-b border-outline-variant"
-          style={{ gridTemplateColumns: "1fr repeat(5, 56px) 64px" }}
-        >
-          <div className="p-4">
-            <span className="font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase">
-              Jugador
-            </span>
+      {/* ── Sin jugadores ─────────────────────────────────────── */}
+      {jugadoresEquipo.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center mb-4 border border-outline-variant">
+            <span className="text-2xl">🏉</span>
           </div>
-          {diasVisibles.map((dia) => (
-            <div
-              key={dia.fecha}
-              className={`p-2 text-center border-l border-outline-variant/30 ${
-                dia.fecha === FECHA_HOY ? "bg-primary-container/5" : ""
-              }`}
-            >
-              <p
-                className={`font-jetbrains text-[10px] tracking-widest ${
-                  dia.fecha === FECHA_HOY
-                    ? "text-primary-container"
-                    : "text-on-surface-variant"
-                }`}
-              >
-                {dia.label}
-              </p>
-              <p
-                className={`font-jetbrains font-bold text-sm ${
-                  dia.fecha === FECHA_HOY ? "text-primary-container" : "text-on-surface"
-                }`}
-              >
-                {dia.numero}
-              </p>
-            </div>
-          ))}
-          <div className="p-2 text-center border-l border-outline-variant/30">
-            <span className="font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase">
-              %
-            </span>
-          </div>
+          <p className="font-inter font-semibold text-on-surface mb-1">
+            Sin jugadores registrados
+          </p>
+          <p className="font-jetbrains text-[11px] text-on-surface-variant">
+            Aún no hay jugadores en el equipo
+          </p>
         </div>
+      )}
 
-        {/* Filas de jugadores */}
-        {JUGADORES.map((jugador, idx) => {
-          const datosCumpl = cumplimiento[jugador.id] ?? {};
-          const jugadorStats = stats[idx];
-
-          return (
-            <div
-              key={jugador.id}
-              className={`grid items-center border-b border-outline-variant/30 hover:bg-surface-container-high/50 transition-colors ${
-                idx % 2 === 0 ? "" : "bg-surface-container-low/30"
-              }`}
-              style={{ gridTemplateColumns: "1fr repeat(5, 56px) 64px" }}
-            >
-              {/* Jugador info */}
-              <div className="p-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center flex-shrink-0">
-                  <span className="font-jetbrains text-[10px] font-bold text-on-surface-variant">
-                    {jugador.iniciales}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <p className="font-inter font-semibold text-xs text-on-surface truncate">
-                    {jugador.nombre}
-                  </p>
-                  <p className="font-jetbrains text-[9px] text-on-surface-variant truncate">
-                    {jugador.posiciones.join(" / ")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Celdas de días */}
-              {diasVisibles.map((dia) => {
-                const esFuturo = dia.fecha > FECHA_HOY;
-                const estado = datosCumpl[dia.fecha] ?? null;
-                return (
-                  <div
-                    key={dia.fecha}
-                    className={`py-3 border-l border-outline-variant/30 ${
-                      dia.fecha === FECHA_HOY ? "bg-primary-container/5" : ""
-                    }`}
-                  >
-                    <CeldaCumplimiento estado={estado} esFuturo={esFuturo} />
-                  </div>
-                );
-              })}
-
-              {/* Porcentaje */}
-              <div className="py-3 text-center border-l border-outline-variant/30">
-                <span
-                  className={`font-jetbrains font-bold text-sm ${
-                    jugadorStats.pct >= 80
+      {/* ── Grilla ────────────────────────────────────────────── */}
+      {jugadoresEquipo.length > 0 && (
+        <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+          {/* Header de la tabla */}
+          <div className="grid bg-surface-container-low border-b border-outline-variant"
+            style={{ gridTemplateColumns: "1fr repeat(5, 56px) 64px" }}
+          >
+            <div className="p-4">
+              <span className="font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase">
+                Jugador
+              </span>
+            </div>
+            {diasVisibles.map((dia) => (
+              <div
+                key={dia.fecha}
+                className={`p-2 text-center border-l border-outline-variant/30 ${
+                  dia.fecha === FECHA_HOY ? "bg-primary-container/5" : ""
+                }`}
+              >
+                <p
+                  className={`font-jetbrains text-[10px] tracking-widest ${
+                    dia.fecha === FECHA_HOY
                       ? "text-primary-container"
-                      : jugadorStats.pct >= 50
-                      ? "text-secondary"
-                      : "text-error"
+                      : "text-on-surface-variant"
                   }`}
                 >
-                  {jugadorStats.total > 0 ? `${jugadorStats.pct}%` : "—"}
-                </span>
+                  {dia.label}
+                </p>
+                <p
+                  className={`font-jetbrains font-bold text-sm ${
+                    dia.fecha === FECHA_HOY ? "text-primary-container" : "text-on-surface"
+                  }`}
+                >
+                  {dia.numero}
+                </p>
               </div>
+            ))}
+            <div className="p-2 text-center border-l border-outline-variant/30">
+              <span className="font-jetbrains text-[10px] tracking-widest text-on-surface-variant uppercase">
+                %
+              </span>
             </div>
-          );
-        })}
-      </div>
+          </div>
+
+          {/* Filas de jugadores */}
+          {jugadoresEquipo.map((jugador, idx) => {
+            const datosCumpl = cumplimiento[jugador.id] ?? {};
+            const jugadorStats = stats[idx];
+
+            return (
+              <div
+                key={jugador.id}
+                className={`grid items-center border-b border-outline-variant/30 hover:bg-surface-container-high/50 transition-colors ${
+                  idx % 2 === 0 ? "" : "bg-surface-container-low/30"
+                }`}
+                style={{ gridTemplateColumns: "1fr repeat(5, 56px) 64px" }}
+              >
+                {/* Jugador info */}
+                <div className="p-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center flex-shrink-0">
+                    <span className="font-jetbrains text-[10px] font-bold text-on-surface-variant">
+                      {jugador.iniciales}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-inter font-semibold text-xs text-on-surface truncate">
+                      {jugador.nombre}
+                    </p>
+                    <p className="font-jetbrains text-[9px] text-on-surface-variant truncate">
+                      {jugador.posiciones.join(" / ")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Celdas de días */}
+                {diasVisibles.map((dia) => {
+                  const esFuturo = dia.fecha > FECHA_HOY;
+                  const estado = datosCumpl[dia.fecha] ?? null;
+                  return (
+                    <div
+                      key={dia.fecha}
+                      className={`py-3 border-l border-outline-variant/30 ${
+                        dia.fecha === FECHA_HOY ? "bg-primary-container/5" : ""
+                      }`}
+                    >
+                      <CeldaCumplimiento estado={estado} esFuturo={esFuturo} />
+                    </div>
+                  );
+                })}
+
+                {/* Porcentaje */}
+                <div className="py-3 text-center border-l border-outline-variant/30">
+                  <span
+                    className={`font-jetbrains font-bold text-sm ${
+                      jugadorStats && jugadorStats.pct >= 80
+                        ? "text-primary-container"
+                        : jugadorStats && jugadorStats.pct >= 50
+                        ? "text-secondary"
+                        : "text-error"
+                    }`}
+                  >
+                    {jugadorStats && jugadorStats.total > 0 ? `${jugadorStats.pct}%` : "—"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Insight staff ─────────────────────────────────────── */}
       <div className="mt-6 p-4 bg-primary-container/5 border border-primary-container/20 rounded-xl flex gap-3">

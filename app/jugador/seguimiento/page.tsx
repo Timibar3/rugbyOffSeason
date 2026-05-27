@@ -1,11 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useMockAuth } from "@/context/MockAuthContext";
-import {
-  EJERCICIOS_TEMPLATE,
-  METRICAS_HISTORICAS,
-} from "@/mocks/rugbyData";
+import { useEffect, useMemo, useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import { METRICAS_HISTORICAS } from "@/mocks/rugbyData";
 
 // ─── Utilidad: normaliza datos a coordenadas SVG ──────────────────────────────
 
@@ -50,15 +47,18 @@ function buildDots(
   }));
 }
 
-// ─── Tests disponibles (solo los que son tipo test) ──────────────────────────
-
-const TESTS = EJERCICIOS_TEMPLATE.filter((e) => e.tipo === "test");
-
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function SeguimientoPage() {
-  const { usuarioActivo } = useMockAuth();
-  const [testId, setTestId] = useState(TESTS[0]?.id ?? "test1");
+  const { usuarioActivo, todosLosEjercicios } = useAppContext();
+  const TESTS = todosLosEjercicios.filter((e) => e.tipo === "test");
+  const [testId, setTestId] = useState<string>("");
+
+  // Cuando cargan los tests, seleccionar el primero automáticamente
+  useEffect(() => {
+    if (!testId && TESTS.length > 0) setTestId(TESTS[0].id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [TESTS.length]);
 
   const metrica = useMemo(
     () => METRICAS_HISTORICAS.find((m) => m.testId === testId),

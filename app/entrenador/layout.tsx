@@ -12,7 +12,7 @@ import {
   Bell,
   Users,
 } from "lucide-react";
-import { useMockAuth } from "@/context/MockAuthContext";
+import { useAppContext } from "@/context/AppContext";
 
 const NAV_ITEMS = [
   { href: "/entrenador/agenda", label: "Planificador", icon: CalendarDays },
@@ -27,19 +27,23 @@ export default function EntrenadorLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { usuarioActivo, logout } = useMockAuth();
+  const { usuarioActivo, logout, loadingAuth } = useAppContext();
 
   useEffect(() => {
-    if (usuarioActivo !== null && usuarioActivo.tipo !== "staff") {
-      router.replace("/");
+    if (!loadingAuth && usuarioActivo !== null && usuarioActivo.tipo !== "staff") {
+      router.replace("/login");
     }
-  }, [usuarioActivo, router]);
+  }, [usuarioActivo, loadingAuth, router]);
 
+  if (loadingAuth) return (
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-6 h-6 rounded-full border-2 border-primary-container border-t-transparent animate-spin" />
+    </div>
+  );
   if (!usuarioActivo || usuarioActivo.tipo !== "staff") return null;
 
   function handleLogout() {
-    logout();
-    router.push("/");
+    logout(); // logout navega a /login internamente
   }
 
   const rolLabel =

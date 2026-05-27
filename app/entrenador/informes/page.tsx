@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TrendingUp, TrendingDown, AlertTriangle, FlaskConical } from "lucide-react";
-import { useMockAuth } from "@/context/MockAuthContext";
+import { useAppContext } from "@/context/AppContext";
 import {
-  JUGADORES,
   METRICAS_HISTORICAS,
   getGruposDeJugador,
   Grupo,
   MetricaHistorica,
 } from "@/mocks/rugbyData";
+import type { JugadorEquipo } from "@/context/AppContext";
+import { createClient } from "@/lib/supabase/client";
 
 // ─── Árbol de jerarquías ──────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ function NodoFiltroItem({
 // ─── Generador de mock data para tests sin historial ──────────────────────────
 // Determinístico: mismos valores para el mismo testId entre renders.
 
-function generarMetricaMock(testId: string): MetricaHistorica {
+function generarMetricaMock(testId: string, jugadores: JugadorEquipo[]): MetricaHistorica {
   const seed = testId
     .split("")
     .reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0);
@@ -111,7 +112,7 @@ function generarMetricaMock(testId: string): MetricaHistorica {
   const semanas = ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Actual"];
 
   const porJugador: Record<string, number[]> = {};
-  JUGADORES.forEach((j) => {
+  jugadores.forEach((j) => {
     const pSeed = j.id
       .split("")
       .reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -122,14 +123,16 @@ function generarMetricaMock(testId: string): MetricaHistorica {
     );
   });
 
-  const promedioEquipo = semanas.map((_, i) =>
-    parseFloat(
-      (
-        Object.values(porJugador).reduce((s, v) => s + v[i], 0) /
-        JUGADORES.length
-      ).toFixed(1)
-    )
-  );
+  const promedioEquipo = jugadores.length > 0
+    ? semanas.map((_, i) =>
+        parseFloat(
+          (
+            Object.values(porJugador).reduce((s, v) => s + v[i], 0) /
+            jugadores.length
+          ).toFixed(1)
+        )
+      )
+    : semanas.map(() => 0);
 
   return { testId, semanas, promedioEquipo, porJugador };
 }
@@ -137,7 +140,7 @@ function generarMetricaMock(testId: string): MetricaHistorica {
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function InformesPage() {
-  const { todosLosEjercicios } = useMockAuth();
+  const { todosLosEjercicios, jugadoresEquipo, usuarioActivo } = useAppContext();
 
   // Tests dinámicos: base + personalizados creados en el catálogo
   const tests = useMemo(
@@ -148,6 +151,74 @@ export default function InformesPage() {
   const [grupoFiltro, setGrupoFiltro] = useState<Grupo>("Plantel Completo");
   // Inicializar con el primer test disponible
   const [testId, setTestId] = useState(() => tests[0]?.id ?? "");
+  const [metricasReales, setMetricasReales] = useState<MetricaHistorica[]>([]);
+
+  // Cargar resultados reales de la DB
+  useEffect(() => {
+    if (!usuarioActivo) return;
+    const supabase = createClient();
+
+    async function cargarResultados() {
+      const { data: allAgenda } = await supabase
+        .from("agenda")
+        .select("id, catalogo_id, fecha")
+        .eq("equipo_id", usuarioActivo!.equipoId);
+
+      if (!allAgenda?.length) return;
+
+      const agendaIds = allAgenda.map((a) => a.id);
+
+      const { data: resultados } = await supabase
+        .from("resultados_tests")
+        .select("agenda_id, jugador_id, resultado_numerico")
+        .in("agenda_id", agendaIds)
+        .not("resultado_numerico", "is", null);
+
+      if (!resultados?.length) return;
+
+      const byTest: Record<string, { fecha: string; jugador_id: string; valor: number }[]> = {};
+
+      for (const r of resultados) {
+        const ag = allAgenda.find((a) => a.id === r.agenda_id);
+        if (!ag) continue;
+        if (!byTest[ag.catalogo_id]) byTest[ag.catalogo_id] = [];
+        byTest[ag.catalogo_id].push({
+          fecha: ag.fecha,
+          jugador_id: r.jugador_id,
+          valor: Number(r.resultado_numerico),
+        });
+      }
+
+      const metricas: MetricaHistorica[] = Object.entries(byTest).map(([catalogoId, entries]) => {
+        const fechasUnicas = [...new Set(entries.map((e) => e.fecha))].sort();
+        const semanas = fechasUnicas.map((f) => {
+          const [, month, day] = f.split("-");
+          return `${day}/${month}`;
+        });
+
+        const porJugador: Record<string, number[]> = {};
+        for (const fecha of fechasUnicas) {
+          for (const entry of entries.filter((e) => e.fecha === fecha)) {
+            if (!porJugador[entry.jugador_id]) porJugador[entry.jugador_id] = [];
+            porJugador[entry.jugador_id].push(entry.valor);
+          }
+        }
+
+        const promedioEquipo = fechasUnicas.map((fecha) => {
+          const vals = entries.filter((e) => e.fecha === fecha).map((e) => e.valor);
+          return vals.length > 0
+            ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
+            : 0;
+        });
+
+        return { testId: catalogoId, semanas, promedioEquipo, porJugador };
+      });
+
+      setMetricasReales(metricas);
+    }
+
+    void cargarResultados();
+  }, [usuarioActivo]);
 
   // Si el testId ya no existe (edge case), caer al primero disponible
   const testIdValido = tests.some((t) => t.id === testId)
@@ -156,29 +227,30 @@ export default function InformesPage() {
 
   const ejercicio = tests.find((t) => t.id === testIdValido);
 
-  // Buscar histórico real; si no existe, generar mock determinístico
+  // Real data first, then mock historical, then generated mock
   const metrica = useMemo((): MetricaHistorica | null => {
     if (!testIdValido) return null;
     return (
+      metricasReales.find((m) => m.testId === testIdValido) ??
       METRICAS_HISTORICAS.find((m) => m.testId === testIdValido) ??
-      generarMetricaMock(testIdValido)
+      generarMetricaMock(testIdValido, jugadoresEquipo)
     );
-  }, [testIdValido]);
+  }, [testIdValido, jugadoresEquipo, metricasReales]);
 
   // Para tests de tiempo, menor es mejor (solo test3 en los datos base)
   const menorEsMejor = testIdValido === "test3";
 
-  // ¿Es un test creado por el usuario (sin historial real)?
-  const esTestPersonalizado = !METRICAS_HISTORICAS.some(
-    (m) => m.testId === testIdValido
-  );
+  // ¿Es un test sin datos reales ni histórico?
+  const esTestPersonalizado =
+    !metricasReales.some((m) => m.testId === testIdValido) &&
+    !METRICAS_HISTORICAS.some((m) => m.testId === testIdValido);
 
   const jugadoresFiltrados = useMemo(() => {
-    if (grupoFiltro === "Plantel Completo") return JUGADORES;
-    return JUGADORES.filter((j) =>
+    if (grupoFiltro === "Plantel Completo") return jugadoresEquipo;
+    return jugadoresEquipo.filter((j) =>
       getGruposDeJugador(j.posiciones).includes(grupoFiltro)
     );
-  }, [grupoFiltro]);
+  }, [grupoFiltro, jugadoresEquipo]);
 
   const ranking = useMemo(() => {
     if (!metrica) return [];
@@ -346,9 +418,9 @@ export default function InformesPage() {
               <div className="space-y-1.5">
                 {tests.map((t) => {
                   const activo = t.id === testIdValido;
-                  const esPersonalizado = !METRICAS_HISTORICAS.some(
-                    (m) => m.testId === t.id
-                  );
+                  const esPersonalizado =
+                    !metricasReales.some((m) => m.testId === t.id) &&
+                    !METRICAS_HISTORICAS.some((m) => m.testId === t.id);
                   return (
                     <button
                       key={t.id}

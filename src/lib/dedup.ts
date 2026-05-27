@@ -1,7 +1,6 @@
 import {
   AgendaItem,
   EjercicioTemplate,
-  EJERCICIOS_TEMPLATE,
   getGruposDeJugador,
   PosicionFinal,
 } from "@/mocks/rugbyData";
@@ -25,7 +24,7 @@ export function getItemsParaJugador(
   posiciones: PosicionFinal[],
   fecha: string,
   agenda: AgendaItem[],
-  ejercicios: EjercicioTemplate[] = EJERCICIOS_TEMPLATE
+  ejercicios: EjercicioTemplate[]
 ): ItemAgendaResuelto[] {
   const gruposDelJugador = getGruposDeJugador(posiciones);
 
@@ -58,7 +57,7 @@ export function getItemsParaJugador(
 export function getItemsUnicosPorDia(
   fecha: string,
   agenda: AgendaItem[],
-  ejercicios: EjercicioTemplate[] = EJERCICIOS_TEMPLATE
+  ejercicios: EjercicioTemplate[]
 ): (AgendaItem & { ejercicio: EjercicioTemplate })[] {
   const itemsDelDia = agenda.filter((item) => item.fecha === fecha);
   const seen = new Map<string, AgendaItem & { ejercicio: EjercicioTemplate }>();
